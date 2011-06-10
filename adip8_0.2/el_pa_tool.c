@@ -4,6 +4,7 @@ using namespace std;
 #include <cstdlib>
 #include <cmath>
 #include <string>
+#include <cstring>
 #include "paramanage.h"
 #include "matrix_tool.h"
 #include "vector_tool.h"

@@ -3,6 +3,7 @@ using namespace std;
 #include <cstdlib>
 #include <cmath>
 #include <string>
+#include <cstring>
 #include <iostream>
 #include "paramanage.h"
 #include "sim_scatter.h"
@@ -70,7 +71,7 @@ void sim_help_show_run_file(char* filename)
   char charline[255];            // commentline in parameter file
 
   double start_pos[3];
-  double e_start,starting_theta,starting_phi,mass,charge;
+  double e_start,starting_theta,starting_phi,mass,charge,phase;
   int repeat_number = 0;
 
   FILE* f_run;                    // parameter input file
@@ -106,16 +107,16 @@ void sim_help_show_run_file(char* filename)
       if (parameter.calc_order > 2) printf("no drift\n");
     }
   printf("\nParameters for each run:\n");
-  printf("   Multi     X         Y         Z      Ekin    theta  phi  mass  charge\n");
+  printf("   Multi     X         Y         Z      Ekin    theta  phi  mass  charge phase\n");
 
-  while (fscanf(f_run,"%d %lf %lf %lf %lf %lf %lf %lf %lf\n",
+  while (fscanf(f_run,"%d %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
 		&repeat_number,&start_pos[0],&start_pos[1],&start_pos[2],
 		&e_start,&starting_theta,&starting_phi,
-		&mass,&charge)!=EOF)
+		&mass,&charge,&phase)!=EOF)
     {// read data out of RUN-file until EOF
-      printf("%8d %9.3f %9.3f %9.3f  %7.1f  %4.1f  %4.1f  %3.1f   %3.1f\n",
+      printf("%8d %9.3f %9.3f %9.3f %7.1f %4.1f %4.1f %3.1f %3.1f %4.1f\n",
 	     repeat_number,start_pos[0],start_pos[1],start_pos[2],
-	     e_start,starting_theta,starting_phi,mass,charge);
+	     e_start,starting_theta,starting_phi,mass,charge,phase);
     }
   printf("----------------------------------------------------------------\n");
   fclose(f_run);           // close all files
@@ -158,16 +159,17 @@ void sim_help_save_particle_data(FILE* f_fly,struct particle_data* particle)
       fprintf(f_fly,"%1.9e %1.9e ",
 	      (*particle).e_accel_sum,    // 9
 	      (*particle).e_syncro_sum);    // 10
-      fprintf(f_fly,"%1.9f %1.9f %1.12e  %e  %e",
+      fprintf(f_fly,"%1.9f %1.15e %1.15e %1.12e %e ",
 	      (*particle).b_value,         // 11
-	      (*particle).starting_phi,     // 12
+	      (*particle).phase,     // 12
 	      (*particle).time_of_flight,  // 13
 	      scatter_get_ratio(),         // 14
 	      get_wq((*particle).e_kin));  // 15
-/*       fprintf(f_fly,"%1.9f %1.9f %1.9f ", */
-/* 	      (*particle).v_para[0],       // 14 */
-/* 	      (*particle).v_para[1],       // 15 */
-/* 	      (*particle).v_para[2]);      // 16 */
+       fprintf(f_fly,"%1.9f %1.9f %1.9f %1.9e ", 
+ 	      (*particle).v_para[0],       // 16 
+ 	      (*particle).v_para[1],       // 17 
+ 	      (*particle).v_para[2],      // 18 
+ 	      (*particle).omega);      // 19 
 /*       fprintf(f_fly,"%1.9f %1.9f ",  */
 /* 	      (*particle).v_para_value,    // 17  */
 /* 	      (*particle).v_perp_value);   // 18  */

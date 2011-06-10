@@ -1,0 +1,44 @@
+magfield2
+=========
+
+by Sebastian Voecking <seb.voeck@uni-muenster.de>
+
+This is a modified version of the magfield2 package by Ferenc Glueck. For
+informations about his package see magfield2.pdf. The changes in this version
+are:
+- Fixed size arrays on the stack replaced by dynamic array on the heap. That
+  solves some problem with segfaults on certain machines. This also removes some
+  "hidden" limitations caused by the fixed array sizes.
+- Improvement of frontend programs which makes the packages far easier to use.
+  See below for usage instructions.
+- Added makefile with compiler optimisation.
+- Code cleaned up. No more warnings should appear during compilation.
+
+
+Compilation
+
+Just run "make" and everything should compile.
+
+To create a shared library adjust the Makefile to your needs, especially the
+PREFIX variable and OPT if you want. Then run "make library" and "make install".
+You might need superuser privileges for the last step. It maybe that you need
+to run "ldconfig" to let your linker know about the new library.
+
+
+Usage
+
+You can use magfield2 through the frontend program magmain which calculates the
+magnetic source coeffitions from a given geometry file. And writes them to
+magsource.dat. The syntax is:
+
+magmain [-d DELZ0] [-m Z0MIN] [-M Z0MAX] [-t] <inputfile>
+
+The options mean:
+	-t Show some test output after calculation
+	
+The other options are the same as in the old magmain program.
+
+Additional to this program you can use the magfield2 algorithm directly with
+your own programs. To do that you need to create a library and install it. Then
+you have to link your program against the library. For available functions see
+magfield2.h. 

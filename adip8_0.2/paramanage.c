@@ -1,6 +1,7 @@
 using namespace std;
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <cmath>
 #include <string>
 #include <iostream>
@@ -77,7 +78,13 @@ void init_parameters(void)
   sprintf(parameter.name[++para_count],"B_FIELD_BEN1");
   sprintf(parameter.name[++para_count],"B_FIELD_BEN2");
   sprintf(parameter.name[++para_count],"RAD_CALC_MODE");
+  sprintf(parameter.name[++para_count],"RAD_SHIFT");
+  sprintf(parameter.name[++para_count],"ANTENNA_TEMP");
+  sprintf(parameter.name[++para_count],"ANTENNA_POS");
+  sprintf(parameter.name[++para_count],"IMPEDANCE");
+  sprintf(parameter.name[++para_count],"RAD_ATTEN");
 
+  sprintf(parameter.name[++para_count],"FFT_ON");
   sprintf(parameter.name[++para_count],"FFT_RESAMPLE_TSTEP");
   sprintf(parameter.name[++para_count],"FFT_MAX_NPTS");
 
@@ -138,8 +145,14 @@ void init_parameters(void)
 
   parameter.b_field_ben1 = 10.0;
   parameter.b_field_ben2 = 1.0;
-  parameter.rad_calc_mode = 0;
+  parameter.rad_calc_mode = 2;
+  parameter.rad_shift = 1;
+  parameter.antenna_temp = 0;
+  parameter.antenna_pos = +1;
+  parameter.impedance = +1;
+  parameter.rad_atten = 1;
 
+  parameter.fft_on = 1;
   parameter.fft_resample_tstep = 1e-6;
   parameter.fft_max_npts = 10000000;
 
@@ -269,7 +282,26 @@ int store_parameter(char *identifier,double value)
     {parameter.rad_calc_mode = (int)value; parameter.inited[number] = 1;  status = 1;}
 
   else if (strcmp(identifier,parameter.name[++number]) == 0)   
+    {parameter.rad_shift = (int)value; parameter.inited[number] = 1;  status = 1;}
+  
+  else if (strcmp(identifier,parameter.name[++number]) == 0)   
+    {parameter.antenna_temp = value; parameter.inited[number] = 1;  status = 1;}
+
+  else if (strcmp(identifier,parameter.name[++number]) == 0)   
+    {parameter.antenna_pos = value; parameter.inited[number] = 1;  status = 1;}
+
+  else if (strcmp(identifier,parameter.name[++number]) == 0)   
+    {parameter.impedance = value; parameter.inited[number] = 1;  status = 1;}
+
+  else if (strcmp(identifier,parameter.name[++number]) == 0)   
+    {parameter.rad_atten = (int)value; parameter.inited[number] = 1;  status = 1;}
+  
+  else if (strcmp(identifier,parameter.name[++number]) == 0)   
+    {parameter.fft_on= (int)value; parameter.inited[number] = 1;  status = 1;}
+
+  else if (strcmp(identifier,parameter.name[++number]) == 0)   
     {parameter.fft_resample_tstep = value; parameter.inited[number] = 1;  status = 1;}
+
   else if (strcmp(identifier,parameter.name[++number]) == 0)   
     {parameter.fft_max_npts = (int)value; parameter.inited[number] = 1;  status = 1;}
 

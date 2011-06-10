@@ -318,8 +318,10 @@ void make_step_real(struct particle_data* particle, struct particle_data* probe)
                                // add to the whole tof [in µs] value
 
   // keep track of cyclotron phase
-  (*particle).starting_phi =   (*particle).starting_phi + OMEGA0*(*particle).b_value/get_gamma(particle)*(*particle).delta_tof*180/M_PI; // OMEGA0 is in rad/sec and delta_tof is in ps
+  // OMEGA0 is in rad/sec and delta_tof is in s 
+  (*particle).phase = (*particle).phase + OMEGA0*(*particle).b_value/get_gamma(particle)*(*particle).delta_tof; //in radians
 
+  (*particle).omega = OMEGA0*(*particle).b_value/get_gamma(particle)*1e-6;//radians/usec 
   (*particle).cyclrad = get_cyclrad(particle);
 
 
@@ -380,7 +382,7 @@ void shrink_step(struct particle_data* particle)
 
 /******************** unshrink_step ***********************/
 void unshrink_step(struct particle_data* particle)
-{ // this function halfs the shrinkfactor value each time it was called
+{ // this function doubles the shrinkfactor value each time it was called
   (*particle).shrinkfactor = (*particle).shrinkfactor * 2.;
 }
 
@@ -389,10 +391,11 @@ void turn_direction(struct particle_data* particle)
 { // this function turns the direction of motion and counts the miror points
   (*particle).v_signum = -(*particle).v_signum;
   (*particle).mirrors++;
-  printf("reflections=%4.0d   tof=%10.6f   Etot=%10.4f \n",
+  if (((*particle).mirrors)%100 == 0 ){
+    printf("reflections=%4.0d   tof=%10.6f   Etot=%10.4f \n",
 	 (*particle).mirrors,(*particle).time_of_flight,
 	 (*particle).e_kin-(*particle).e_pot); // put out mirror count
-
+  }
   //  scatter_debug();
 }
 
@@ -456,6 +459,8 @@ void runge_kutta_midpoint(struct particle_data* particle)
  
   vector_times_scalar(b1,(*particle).step_final[0]/b1[0],step2); // go one step (whole value)
                                                                 // with bfield vector of middle point
+  //MLL: vector_times_scalar(b1,absvalue((*particle).step_final)/absvalue(b1),step2); // go one step (whole value)
+
   vector_times_scalar(step2,1.,(*particle).step_final);          // new step vector in v_step
 }
 
@@ -552,10 +557,12 @@ void mag_drift(struct particle_data* particle)
 		      -(*particle).charge*(*particle).e_perp/
 		      ((*particle).b_value*(*particle).b_value*(*particle).b_value),
 		      (*particle).dbxb_vel);  // finishing gradient drift velocity  
+//  vector_times_scalar((*particle).dbxb_vel,0.,(*particle).dbxb_vel);
   vector_times_scalar(gdrift,
 		      -(*particle).charge*2.*(*particle).e_para/
 		      ((*particle).b_value*(*particle).b_value*(*particle).b_value),
 		      (*particle).rxb_vel);   // finishing curvature drift velocity 
+  //vector_times_scalar((*particle).rxb_vel,0.,(*particle).rxb_vel);
 
 }
 
@@ -632,7 +639,11 @@ void init_particle(struct particle_data* particle)
                                                        // here starting position equal to position
   (*particle).e_kin = (*particle).e_start;                  // e_kin equal to e_start
   (*particle).gamma_start = get_gamma(particle);            // calc rel gamma factor at start
-  (*particle).v_signum = 1.;                                // start in positive direction
+  if ((*particle).starting_theta < 90) {
+    (*particle).v_signum = +1.;                                // start in positive direction
+  } else { 
+    (*particle).v_signum = -1.;                                // start in negative direction
+  }
   (*particle).time_of_flight = 0.;                          // reset tof
   (*particle).delta_tof = 0.;                               // reset delta_tof
   (*particle).mirrors = 0;                                  // reset mirror count
@@ -663,11 +674,11 @@ void init_particle(struct particle_data* particle)
       if ((*particle).b_start[1] < 0.) beta = -beta; // test B-Vector pointing down
       (*particle).starting_phi = 0.;                 // no phi needed
       (*particle).starting_theta = beta + (*particle).starting_theta; // adjust starting_theta
-      if (((*particle).starting_theta > 89.) && ((*particle).starting_theta < 91.)) 
-	(*particle).starting_theta = 89.;
+      //if (((*particle).starting_theta > 89.) && ((*particle).starting_theta < 91.)) 
+//	(*particle).starting_theta = 89.;
 
-      cout << "° relative to Bfield to " << (*particle).starting_theta;
-      cout << "° absolute!" << endl;
+      cout << "deg relative to Bfield to " << (*particle).starting_theta;
+      cout << "deg absolute!" << endl;
     }
 
 
@@ -707,6 +718,7 @@ void init_particle(struct particle_data* particle)
 
   (*particle).e_perp = (*particle).e_start * (*particle).sin2_alpha_start;
   (*particle).e_para = (*particle).e_start - (*particle).e_perp;
+  (*particle).omega = OMEGA0*(*particle).b_value/get_gamma(particle)*1e-6;//rad/usec 
 }
 
 
@@ -935,7 +947,7 @@ void single_track(FILE* f_fly, struct particle_data* particle)
   } while ((((*particle).position[0] < SPEC_OUT)  // repeat until particle out of range
 	    && ((*particle).position[0] > SPEC_IN))
 	   && ((*particle).mirrors <= (*particle).max_mirrors) // or mirror count reached
-	   && ((*particle).time_of_flight < (*particle).max_tof*1000000.)
+	   && ((*particle).time_of_flight <= (*particle).max_tof*1000000.)
 	   && (e_tag == 0)
 	   && (loop_counter <= MAX_LOOPS));           // or error happend
 
@@ -949,7 +961,7 @@ void single_track(FILE* f_fly, struct particle_data* particle)
   if (((*particle).position[0] > SPEC_OUT) 
       || ((*particle).position[0] < SPEC_IN)) printf("EXIT by Position! --> splat on detector\n");
   if ((*particle).mirrors > (*particle).max_mirrors) printf("EXIT by Mirrors! --> trapped?\n");
-  if ((*particle).time_of_flight >= (*particle).max_tof*1000000.) printf("EXIT by TOF! --> trapped?\n");
+  if ((*particle).time_of_flight > (*particle).max_tof*1000000.) printf("EXIT by TOF! --> trapped?\n");
   if (e_tag >= 90)  printf("EXIT by cooling --> particle stopped!\n");
   else if (e_tag >= 8) printf("EXIT by relativistic Drift --> ADIPARK unable to calculate!\n");
   else if (e_tag != 0) printf("EXIT by Energy Tag! --> splat on Electrode\n");
@@ -1036,7 +1048,7 @@ int single_track_trap(struct particle_data* particle)
 	                           // repeat until particle out of range
 	   && ((*particle).mirrors <= (*particle).max_mirrors)
 	                           // or mirror count reached
-	   && ((*particle).time_of_flight < (*particle).max_tof*1000000.)
+	   && ((*particle).time_of_flight <= (*particle).max_tof*1000000.)
      	                           // or max flight time is reached
 	   && (e_tag == 0)         // or bad energy tag
 	   && (loop_counter <= MAX_LOOPS));
@@ -1061,7 +1073,7 @@ int single_track_trap(struct particle_data* particle)
       printf("Particle trapped! (mirrors)\n");
       exit_tag = 1;
     }
-  if ((*particle).time_of_flight >= (*particle).max_tof*1000000.)
+  if ((*particle).time_of_flight > (*particle).max_tof*1000000.)
     {
       printf("Particle trapped! (tof)\n");
       exit_tag = 1;

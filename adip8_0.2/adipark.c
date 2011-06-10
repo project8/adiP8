@@ -19,6 +19,7 @@ using namespace std;
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <cstring>
 #include <cmath>
 #include "paramanage.h"
 #include "sim_core.h"

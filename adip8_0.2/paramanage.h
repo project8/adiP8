@@ -23,16 +23,19 @@
 #define PARA_ENERGY_LOSS parameter.para_e_loss
 #define PERP_ENERGY_LOSS parameter.perp_e_loss
 
-#define Clight 299792458.0   // PDG 98
-#define M0Clight2 510999.06  // PDG 98
+#define Clight 299792458.0   // PDG 07
+#define M0Clight2 510998.91  // PDG 07
+//#define M0Clight2 510999.06  // PDG 98
 #define MM2CM 0.1            // scale mm value to cm value
 #define M2CM 100.            // scale m value to cm value
 #define CM2MM 10.            // scale cm value to mm value
 #define TESLA2GAUSS 10000.   // scale tesla to gauss
-#define Echarge 1.60217646e-19    // charge of single electron in C
+#define Echarge 1.602176487e-19    // charge of single electron in C, pdg 07
+//#define Echarge 1.60217646e-19    // charge of single electron in C
 #define erg2eV  6.24150974e+11    // converts CGS unit "erg" to "eV"
 #define SI2esE  3e9          // converts SI units to CGS unit "esE"
-#define OMEGA0 1.758626459e+11 // nrel electron cyclotron frequency (rad/s) at B=1t
+#define OMEGA0 1.758820150e+11 // nrel electron cyclotron frequency (rad/s) at B=1t,pdg 07
+//#define OMEGA0 1.758626459e+11 // nrel electron cyclotron frequency (rad/s) at B=1t
 
 #define display 0           // output switch mode: 0=nothing, 1=some, 2=all 
 
@@ -47,12 +50,15 @@ struct particle_data
   double sin2_alpha_start;          // sin² of starting alpha
   double starting_theta;            // 0 to 89 degree
   double starting_phi;              // 0 to 359 degree
+  double phase;                     // radians
+  double doppler_phase;              // radians, includes doppler shift
+  double omega;                     // in degree per us
   double gamma_start;               // rel. gamma factor at start
   double b_vec[3];                  // actual magnetic vector
   double b_vec_old[3];              // mag. vector or prev. step used for curv. calc.
   double b_value;                   // value of b_vec
   double b_value_old;               // value of b_vec_old
-  double v_para[3];                 // actual parallel velocity vector
+  double v_para[3];                 // actual parallel velocity vector in m/s
   double v_para_value;              // value of it
   double v_signum;                  // director relative to magnetic field line
   double v_perp_start[3];           // perpendicular velocity vector at start_pos
@@ -96,7 +102,7 @@ struct particle_data
 
 };
 
-#define max_parameter 59
+#define max_parameter 65
  
 struct t_parameter{
   int inited[max_parameter+1];
@@ -160,7 +166,13 @@ struct t_parameter{
   double b_field_ben2;
 
   int rad_calc_mode;
+  int rad_shift;
+  double antenna_temp;
+  double antenna_pos;
+  double impedance;
+  int rad_atten;
 
+  int fft_on;
   double fft_resample_tstep;
   int fft_max_npts;
 };

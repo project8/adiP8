@@ -3,6 +3,7 @@ using namespace std;
 #include <cstdlib>
 #include <cmath>
 #include <string>
+#include <cstring>
 #include <iostream>
 #include "paramanage.h"
 #include "sim_core.h"
@@ -68,11 +69,11 @@ void tracking_loop(char* filename)
     }
   printf("\n-----------------------------------------\n");
 
-  while (fscanf(f_run,"%d %lf %lf %lf %lf %lf %lf %lf %lf\n",
+  while (fscanf(f_run,"%d %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
 		&repeat_number,
 		&particle.start_pos[0],&particle.start_pos[1],&particle.start_pos[2],
 		&particle.e_start,&particle.starting_theta,&particle.starting_phi,
-		&particle.mass,&particle.charge)!=EOF)
+		&particle.mass,&particle.charge, &particle.phase)!=EOF)
     {// read data out of file until file ends
 
       particle_count++;
@@ -573,12 +574,12 @@ void mc_tracking(char* filename)
     }
   printf("\n-----------------------------------------\n");
 
-  while (fscanf(f_run,"%d %lf %lf %lf %lf %lf %lf %lf %lf\n",
+  while (fscanf(f_run,"%d %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
 		&repeat_number,
 		&particle.start_pos[0],&particle.start_pos[1],
 		&particle.start_pos[2],&particle.e_start,
 		&particle.starting_theta,&particle.starting_phi,
-		&particle.mass,&particle.charge)!=EOF)
+		&particle.mass,&particle.charge, &particle.phase)!=EOF)
     {// read data out of file until file ends
       particle_count++;
       particle.mass = particle.mass*M0Clight2;

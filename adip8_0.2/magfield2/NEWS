@@ -1,0 +1,12 @@
+magfield2-1.1.0 (26.07.07)
+
+- Use libtool to generate a shared library
+- A few bugfixes
+
+magfield2-1.0.1 (15.02.07)
+
+- Added a rclimit for the convergence of legendre polynoms.
+
+magfield2-1.0.0 (05.02.07)
+
+- Initial version. See README.

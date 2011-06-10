@@ -4,6 +4,7 @@ using namespace std;
 #include <cstdlib>
 #include <cmath>
 #include <string>
+#include <cstring>
 #include "paramanage.h"
 #include "matrix_tool.h"
 #include "vector_tool.h"
@@ -250,8 +251,8 @@ double get_magpot2D(double *position_cm)
 
 void get_bfield_poles(double *position, double *bvec)
 {
-  double xscale = parameter.b_field_ben1; // default 10.0 ;// in centimeters?
-  double bmax = parameter.b_field_ben2; // default 1.0; //in gauss or tesla? 
+  double xscale = parameter.b_field_ben1; // default 10.0 ;// in cm
+  double bmax = parameter.b_field_ben2; // default 1.0; //in tesla 
   bvec[0] = bmax*(1 + pow(position[0]/xscale,2));
   bvec[1] = -bmax*position[1]*position[0]/(xscale*xscale);
   bvec[2] = -bmax*position[2]*position[0]/(xscale*xscale);		  
@@ -296,7 +297,7 @@ void get_bfield_std(double *position, double *bvec)
 
 void get_bfield_homogen(double *bvec)
 {
-  bvec[0] = 1.;
+  bvec[0] = 1.0;
   bvec[1] = 0.;
   bvec[2] = 0.;
 }

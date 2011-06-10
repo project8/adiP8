@@ -58,7 +58,7 @@ void magfield(double z,double r,double *A,double *Bz,double *Br)
 //    the same nmax number used for magsource
 //    should also be used for magfield !!!
 {
-  const int Nspmax = 1000;
+  const int Nspmax = 20001;
   const int nmax = 200;
 
   FILE *fp;
