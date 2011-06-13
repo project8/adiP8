@@ -1,1 +1,5 @@
 *.o
+adi2fft
+adifilter
+adipark
+adiplot
