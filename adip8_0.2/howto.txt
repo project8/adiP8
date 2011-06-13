@@ -3,7 +3,7 @@ make
 
 to run: (change initializations in example.ini and example.run)
 1a- if using magfield2 (in magfield2 directory, make, then):
-  magfield2 -m -0.005 -M 0.005 -D 0.000001 -t parabolic_coilparms.dat
+  magfield2 -m -0.005 -M 0.005 -d 0.000001 -t parabolic_coilparms.dat
   (copy parabolic_magsource.dat to magsource.dat in adip8_wg dir)
  
 1- adipark example 
