@@ -767,10 +767,8 @@ double sigmaBC(double E)
 // about 12.5 eV.
 // E is incident electron energy in eV,
 // sigmaexc in m^2
-  static double aB[9] = { -4.2935194e2, 5.1122109e2, -2.8481279e2, 8.8310338e1, -1.6659591e1, 1.9579609, -1.4012824e-1, 5.5911348e-3, -9.5370103e-5
-  };
-  static double aC[9] = { -8.1942684e2, 9.8705099e2, -5.3095543e2, 1.5917023e2, -2.9121036e1, 3.3321027, -2.3305961e-1, 9.1191781e-3, -1.5298950e-4
-  };
+  static double aB[9] = { -4.2935194e2, 5.1122109e2, -2.8481279e2, 8.8310338e1, -1.6659591e1, 1.9579609, -1.4012824e-1, 5.5911348e-3, -9.5370103e-5 };
+  static double aC[9] = { -8.1942684e2, 9.8705099e2, -5.3095543e2, 1.5917023e2, -2.9121036e1, 3.3321027, -2.3305961e-1, 9.1191781e-3, -1.5298950e-4 };
   double lnsigma, lnE, lnEn, sigmaB, Emin, sigma, sigmaC;
   int n;
   sigma = 0.;
@@ -778,38 +776,32 @@ double sigmaBC(double E)
   lnE = log(E);
   lnEn = 1.;
   lnsigma = 0.;
-  if (E < Emin)
+  if (E < Emin) {
     sigmaB = 0.;
-  
-  else
-     {
-    for (n = 0; n <= 8; n++)
-       {
+  } else {
+    for (n = 0; n <= 8; n++) {
       lnsigma += aB[n] * lnEn;
       lnEn = lnEn * lnE;
-      }
-    sigmaB = exp(lnsigma);
     }
+    sigmaB = exp(lnsigma);
+  }
   sigma += sigmaB;
   
 //  sigma=0.;
 // C state:
-      Emin = 15.8;
+  Emin = 15.8;
   lnE = log(E);
   lnEn = 1.;
   lnsigma = 0.;
-  if (E < Emin)
+  if (E < Emin) {
     sigmaC = 0.;
-  
-  else
-     {
-    for (n = 0; n <= 8; n++)
-       {
+  } else {
+    for (n = 0; n <= 8; n++) {
       lnsigma += aC[n] * lnEn;
       lnEn = lnEn * lnE;
-      }
-    sigmaC = exp(lnsigma);
     }
+    sigmaC = exp(lnsigma);
+  }
   sigma += sigmaC;
   return sigma * 1.e-4;
 }
@@ -825,29 +817,25 @@ double sigmadiss10(double E)
 // about 10 eV.
 // E is incident electron energy in eV,
 // sigmadiss10 in m^2
-  static double a[9] = { -2.297914361e5, 5.303988579e5, -5.316636672e5, 3.022690779e5, -1.066224144e5, 2.389841369e4, -3.324526406e3, 2.624761592e2, -9.006246604
-  };
+  static double a[9] = { -2.297914361e5, 5.303988579e5, -5.316636672e5, 3.022690779e5, -1.066224144e5, 2.389841369e4, -3.324526406e3, 2.624761592e2, -9.006246604 };
   double lnsigma, lnE, lnEn, Emin, sigma;
   int n;
   
 //  E is in eV
-      sigma = 0.;
+  sigma = 0.;
   Emin = 9.8;
   lnE = log(E);
   lnEn = 1.;
   lnsigma = 0.;
-  if (E < Emin)
+  if (E < Emin) {
     sigma = 0.;
-  
-  else
-     {
-    for (n = 0; n <= 8; n++)
-       {
+  } else {
+    for (n = 0; n <= 8; n++) {
       lnsigma += a[n] * lnEn;
       lnEn = lnEn * lnE;
-      }
-    sigma = exp(lnsigma);
     }
+    sigma = exp(lnsigma);
+  }
   return sigma * 1.e-4;
 }
 
@@ -862,29 +850,25 @@ double sigmadiss15(double E)
 // about 15 eV.
 // E is incident electron energy in eV,
 // sigmadiss15 in m^2
-  static double a[9] = { -1.157041752e3, 1.501936271e3, -8.6119387e2, 2.754926257e2, -5.380465012e1, 6.573972423, -4.912318139e-1, 2.054926773e-2, -3.689035889e-4
-  };
+  static double a[9] = { -1.157041752e3, 1.501936271e3, -8.6119387e2, 2.754926257e2, -5.380465012e1, 6.573972423, -4.912318139e-1, 2.054926773e-2, -3.689035889e-4 };
   double lnsigma, lnE, lnEn, Emin, sigma;
   int n;
   
 //  E is in eV
-      sigma = 0.;
+  sigma = 0.;
   Emin = 16.5;
   lnE = log(E);
   lnEn = 1.;
   lnsigma = 0.;
-  if (E < Emin)
+  if (E < Emin) {
     sigma = 0.;
-  
-  else
-     {
-    for (n = 0; n <= 8; n++)
-       {
+  } else {
+    for (n = 0; n <= 8; n++) {
       lnsigma += a[n] * lnEn;
       lnEn = lnEn * lnE;
-      }
-    sigma = exp(lnsigma);
     }
+    sigma = exp(lnsigma);
+  }
   return sigma * 1.e-4;
 }
 
@@ -900,19 +884,18 @@ double Dinel(double E, double c)
 //         c= cos(theta), where theta is the polar scatt. angle
 // Dinel: in m2/steradian
   static double a02 = 28.e-22;  // Bohr radius squared
-  static double Cinel[50] =
-      { -0.246, -0.244, -0.239, -0.234, -0.227, -0.219, -0.211, -0.201, -0.190, -0.179, -0.167, -0.155, -0.142, -0.130, -0.118, -0.107, -0.096, -0.085, -0.076, -0.067, -0.059, -0.051, -0.045,
--0.039, -0.034, -0.029, -0.025, -0.022, -0.019, -0.016, -0.014, -0.010, -0.008, -0.006, -0.004, -0.003, -0.003, -0.002, -0.002, -0.001, -0.001, -0.001, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000
-  };
+  static double Cinel[50] = { -0.246, -0.244, -0.239, -0.234, -0.227, -0.219, -0.211, -0.201, -0.190, -0.179, -0.167, -0.155, -0.142, -0.130, -0.118, -0.107, -0.096, -0.085, -0.076, -0.067, -0.059, -0.051, -0.045, -0.039, -0.034, -0.029, -0.025, -0.022, -0.019, -0.016, -0.014, -0.010, -0.008, -0.006, -0.004, -0.003, -0.003, -0.002, -0.002, -0.001, -0.001, -0.001, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000 };
   static double Ei = 0.568;
   double T, K2, K, st1, F, DH, Dinelreturn, CinelK, Ki;
   int i;
-  if (E < 16.)
+  if (E < 16.) {
     return Dexc(E, c);
+  }
   T = E / 27.2;
   K2 = 4. * T * (1. - Ei / (2. * T) - sqrt(1. - Ei / T) * c);
-  if (K2 < 1.e-9)
+  if (K2 < 1.e-9) {
     K2 = 1.e-9;
+  }
   K = sqrt(K2);                // momentum transfer
   st1 = 1. + K2 / 4.;
   F = 1. / (st1 * st1);        // scatt. formfactor of hydrogen atom
@@ -924,29 +907,21 @@ double Dinel(double E, double c)
 // CinelK is the correction of the inelastic electron
 // scatt. on molecular hydrogen compared to the independent atom
 // model.
-      if (K < 3.)
-     {
+  if (K < 3.) {
     i = (int) (K / 0.1);
     Ki = i * 0.1;
     CinelK = Cinel[i] + (K - Ki) / 0.1 * (Cinel[i + 1] - Cinel[i]);
-    }
-  
-  else if (K >= 3. && K < 5.)
-     {
+  } else if (K >= 3. && K < 5.) {
     i = (int) (30 + (K - 3.) / 0.2);
     Ki = 3. + (i - 30) * 0.2;
     CinelK = Cinel[i] + (K - Ki) / 0.2 * (Cinel[i + 1] - Cinel[i]);
-    }
-  
-  else if (K >= 5. && K < 9.49)
-     {
+  } else if (K >= 5. && K < 9.49) {
     i = (int) (40 + (K - 5.) / 0.5);
     Ki = 5. + (i - 40) * 0.5;
     CinelK = Cinel[i] + (K - Ki) / 0.5 * (Cinel[i + 1] - Cinel[i]);
-    }
-  
-  else
+  } else {
     CinelK = 0.;
+  }
   Dinelreturn = 2. * DH * (1. + CinelK);
   return Dinelreturn;
 }
@@ -964,11 +939,10 @@ void gensecelen(double E, double *W)
   static double B;
   double C, A, eps, a, u, epsmax;
   static int iff = 0;
-  if (iff == 0)
-     {
+  if (iff == 0) {
     B = atan((Ei - eps2) / b);
     iff = 1;
-    }
+  }
   epsmax = (E + Ei) / 2.;
   A = atan((epsmax - eps2) / b);
   C = b / (A - B);
@@ -1027,70 +1001,73 @@ void subrn(double *u, int len)
   static int iff = 0;
   static long ijkl, ij, kl, i, j, k, l, ii, jj, m, i97, j97, ivec;
   static float s, t, uu[98], c, cd, cm, uni;
-  if (iff == 0)
-     {
+  if (iff == 0) {
     ijkl = IJKLRANDOM;
-    if (ijkl < 1 || ijkl >= 900000000)
+    if (ijkl < 1 || ijkl >= 900000000) {
       ijkl = 1;
+    }
     ij = ijkl / 30082;
     kl = ijkl - 30082 * ij;
     i = ((ij / 177) % 177) + 2;
     j = (ij % 177) + 2;
     k = ((kl / 169) % 178) + 1;
     l = kl % 169;
-    for (ii = 1; ii <= 97; ii++)
-       {
+    for (ii = 1; ii <= 97; ii++) {
       s = 0;
       t = 0.5;
-      for (jj = 1; jj <= 24; jj++)
-         {
+      for (jj = 1; jj <= 24; jj++) {
         m = (((i * j) % 179) * k) % 179;
         i = j;
         j = k;
         k = m;
         l = (53 * l + 1) % 169;
-        if ((l * m) % 64 >= 32)
+        if ((l * m) % 64 >= 32) {
           s = s + t;
-        t = 0.5 * t;
         }
-      uu[ii] = s;
+        t = 0.5 * t;
       }
+      uu[ii] = s;
+    }
     c = 362436. / 16777216.;
     cd = 7654321. / 16777216.;
     cm = 16777213. / 16777216.;
     i97 = 97;
     j97 = 33;
     iff = 1;
-    }
-  for (ivec = 1; ivec <= len; ivec++)
-     {
+  }
+  for (ivec = 1; ivec <= len; ivec++) {
     uni = uu[i97] - uu[j97];
-    if (uni < 0.)
+    if (uni < 0.) {
       uni = uni + 1.;
+    }
     uu[i97] = uni;
     i97 = i97 - 1;
-    if (i97 == 0)
+    if (i97 == 0) {
       i97 = 97;
+    }
     j97 = j97 - 1;
-    if (j97 == 0)
+    if (j97 == 0) {
       j97 = 97;
+    }
     c = c - cd;
-    if (c < 0.)
+    if (c < 0.) {
       c = c + cm;
+    }
     uni = uni - c;
-    if (uni < 0.)
+    if (uni < 0.) {
       uni = uni + 1.;
-    if (uni == 0.)
-       {
+    }
+    if (uni == 0.) {
       uni = uu[j97] * 0.59604644775391e-07;
-      if (uni == 0.)
+      if (uni == 0.) {
         uni = 0.35527136788005e-14;
       }
-    u[ivec] = uni;
     }
+    u[ivec] = uni;
+  }
   
       //  cout << endl<<  "random: " << u[1] << endl << flush;
-      return;
+  return;
 }
 
 
@@ -1112,8 +1089,7 @@ double lagrange(int n, double *xn, double *fn, double x)
   int i, j;
   double f, a[100], b[100], aa, bb;
   f = 0.;
-  for (j = 0; j < n; j++)
-     {
+  for (j = 0; j < n; j++) {
     for (i = 0; i < n; i++) {
       a[i] = x - xn[i];
       b[i] = xn[j] - xn[i];
@@ -1124,7 +1100,7 @@ double lagrange(int n, double *xn, double *fn, double x)
       bb = bb * b[i];
     }
     f += fn[j] * aa / bb;
-    }
+  }
   return f;
 }
 
