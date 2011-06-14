@@ -86,12 +86,3 @@ Double_t dpdd2(Double_t b, Double_t beta, Double_t theta_pitch, Double_t th)
     - 4*bpar*cos(th)) - (1 - sq(bpar) + 3*sq(bperp))*sq(bperp)*TMath::Power(sin(th),4)) / 
     ( 4 * TMath::Power(sq(gpar) - sq(bperp*sin(th)), 7.0/2.0) );
 }
-								     
- 
-
-
-
-
-
-
-

@@ -22,7 +22,7 @@ void fit_fft_to_gaussian(double* pars,double* f,double* out,int N)
   int i10 = N-1;
   for (int i=imax;i<N;i++)
     {
-      if (out[i] < omax/10 && out[i+1] < omax/10) { i10 = i; break;}	
+      if (out[i] < omax/10 && out[i+1] < omax/10) { i10 = i; break;}
     }
   int iwid = i10 - imax;
   //  cout << imax << " " << i10 << " " << iwid << endl;
@@ -70,7 +70,7 @@ void fit_fft_to_lorentian(double* pars,double* f,double* pow,int N, int j)
   int i10 = N-1;
   for (int i=imax;i<N;i++)
     {
-      if (pow[i] < omax/10 && pow[i+1] < omax/10) { i10 = i; break;}	
+      if (pow[i] < omax/10 && pow[i+1] < omax/10) { i10 = i; break;}
     }
   int iwid = i10 - imax;
     //cout << imax << " " << i10 << " " << iwid << endl;
@@ -201,7 +201,7 @@ void fit_fft_to_sinc_2nd(double* pars,double* f,double* pow,int N, int j)
   int i10 = N-1;
   for (int i=imax;i<N;i++)
     {
-      if (pow[i] < omax/10 && pow[i+1] < omax/10) { i10 = i; break;}	
+      if (pow[i] < omax/10 && pow[i+1] < omax/10) { i10 = i; break;}
     }
   int iwid = i10 - imax;
     //cout << imax << " " << i10 << " " << iwid << endl;

@@ -26,10 +26,10 @@ void get_bfield_fg(double *posvec, double *bvec)
 
   z=xpos/100.0;
   r=sqrt(ypos*ypos+zpos*zpos)/100.0;
-	// posvec comes in cm units -> times 100 to have meters
+        // posvec comes in cm units -> times 100 to have meters
 
   magfield(z,r,&A,&Bz,&Br);
-	// call magfield of Ferenc Glck with converted values
+        // call magfield of Ferenc Glck with converted values
 
   bvec[0]=Bz;
   if(Bz < 1e-12 || r < 1e-12)

@@ -56,18 +56,18 @@ int main(int argc, char* argv[])
       if (flatene==0)
         {
         pa = acos(gRandom->Rndm()*cos(min_pa))*180/3.14159265;
-	double ry;
-	do {
-	  ene= gRandom->Rndm()*(18575-min_ene)+min_ene;
-	  ry = gRandom->Rndm()*specscale;
-	} while (ry < dnde(ene))	 ;   
+        double ry;
+        do {
+          ene= gRandom->Rndm()*(18575-min_ene)+min_ene;
+          ry = gRandom->Rndm()*specscale;
+        } while (ry < dnde(ene))         ;   
       }
       else 
-	{
-	  //ene = gRandom->Rndm()*(18575-min_ene)+min_ene;
-	  ene = min_ene;
+        {
+          //ene = gRandom->Rndm()*(18575-min_ene)+min_ene;
+          ene = min_ene;
           pa = min_pa;
-	}
+        }
       
       
       printf("%d %g %g %g %g %g %g %g %g\n",1,x,y,z,ene,pa, 0.,1.,1.);
