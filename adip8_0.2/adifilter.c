@@ -18,6 +18,7 @@
 
 using namespace std;
 struct t_parameter parameter;
+
 //reads in fft_% Tree from existing root file, filters, mixes, returns to time domain
 int main(int argc, char *argv[])
 {
@@ -139,7 +140,6 @@ int main(int argc, char *argv[])
     wfTree->Branch("wfi", &wfi, "i/L:t/D:Ef/D:fW_t/D:nfW_t/D:sig/D:noise/D:vtot/D");
     TTree *nfftTree = new TTree(Form("nfft_%d", event), "freq domain results with extra samples");
     nfftTree->Branch("npc", &npc, "Hz/D:noutr/D:nouti/D:nfW_f/D:nfJ_f/D:nfJpHz/D");
-
 
     //initialize backward fft, take N/2+1 freq. points, create N time points 
     int N = 2 * (nEntries - 1); //max number of time points for this sim

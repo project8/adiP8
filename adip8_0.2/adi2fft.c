@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
   //fourier transform results
   typedef struct {
-    Double_t Hz, outr, outi, fW_f, fJ_f, fJpHz;	//from fftw
+    Double_t Hz, outr, outi, fW_f, fJ_f, fJpHz; //from fftw
   } POWERCALC;
   static POWERCALC pc;          //without noise
   static POWERCALC npc;         //with noise
@@ -100,8 +100,7 @@ int main(int argc, char *argv[])
     if (load_init_data(parameter_filename_sub) == 0) {
       cout << "Try parameter file w/o point: ";
       strcpy(parameter_filename_sub, "");
-      strncat(parameter_filename_sub, parameter_filename,
-              strlen(parameter_filename) - 1);
+      strncat(parameter_filename_sub, parameter_filename, strlen(parameter_filename) - 1);
       cout << parameter_filename_sub << endl;
       if (load_init_data(parameter_filename_sub) == 0) {
         cout << endl << "ERROR: missing some settings in INI-file!";
@@ -114,8 +113,9 @@ int main(int argc, char *argv[])
       parameter_file_found = 1;
       cardname.Resize(strlen(parameter_filename) - 4);
     }
-  } else
-    parameter_file_found = 1;
+  } else {
+      parameter_file_found = 1;
+    }
 
   //open run file
   TString runname = cardname + TString(".run");
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 
   ifstream runfile;
   runfile.open(runname.Data());
-  runfile.getline(cdummy, 1000);	//read and discard header line
+  runfile.getline(cdummy, 1000);       //read and discard header line
   int repeat;
   double xi, yi, zi, ekin, thetai, phii, mass, charge, phasei;
 
@@ -135,11 +135,9 @@ int main(int argc, char *argv[])
   //set root's global rand gen to Mersene Twister
   TRandom3 *r3 = new TRandom3(0);
   gRandom = r3;
-  double kT = (parameter.antenna_temp) * 1.38e-8;	//fJ, T=35K, amplifier Teff = 25 K
+  double kT = (parameter.antenna_temp) * 1.38e-8;    //fJ, T=35K, amplifier Teff = 25 K
 
-  TNtuple *runcard =
-      new TNtuple("runcard", "run parameters",
-                  "i:repeat:xi:yi:zi:ekin:thetai:phii:mass:charge:phasei:nscatters:n_temp:imp:x_ant:t_del:atten:mean:duration:height:ta_pow:emean:eduration:eheight:status");
+  TNtuple *runcard = new TNtuple("runcard", "run parameters", "i:repeat:xi:yi:zi:ekin:thetai:phii:mass:charge:phasei:nscatters:n_temp:imp:x_ant:t_del:atten:mean:duration:height:ta_pow:emean:eduration:eheight:status");
   float ntarray[25];
   double pars[7];
 
@@ -149,7 +147,7 @@ int main(int argc, char *argv[])
   if (parameter.fft_on == 1) {
     transform = kTRUE;
   }
-  double tstep = parameter.fft_resample_tstep;	//in us
+  double tstep = parameter.fft_resample_tstep;   //in us
   double tmax = parameter.max_tof_in_sec * 1e6;
   //set up for radiation calculation
   Bool_t addNoise = kFALSE;
@@ -162,12 +160,12 @@ int main(int argc, char *argv[])
   if (parameter.rad_shift == 1) {
     shift = kTRUE;
   }
-  double impedance = parameter.impedance;	//normalized load impedance
+  double impedance = parameter.impedance;  //normalized load impedance
   double refCo = (impedance - 1) / (impedance + 1);
   if (std::isinf(impedance)) {
     refCo = 1;
   }
-  double omega0 = 27.05e3 * 2 * M_PI;	//radians/us 
+  double omega0 = 27.05e3 * 2 * M_PI;    //radians/us 
   init_data();                  //set tl geometry in radiation.c 
   switch (parameter.rad_calc_mode) {
     case 2:                      //parallel wires
@@ -217,10 +215,8 @@ int main(int argc, char *argv[])
     trackfile.open(trackname.Data());
 
     //initialize Tree, fill with track information (doubles) 
-    TTree *trackTree =
-        new TTree(Form("track_%d", i), "adipark track results");
-    trackTree->Branch("ti", &ti,
-                      "t/D:xcen/D:ycen/D:zcen/D:rad/D:vx/D:vy/D:vz/D:ekin/D:eloss/D:b/D:phase/D:omega/D");
+    TTree *trackTree = new TTree(Form("track_%d", i), "adipark track results");
+    trackTree->Branch("ti", &ti, "t/D:xcen/D:ycen/D:zcen/D:rad/D:vx/D:vy/D:vz/D:ekin/D:eloss/D:b/D:phase/D:omega/D");
     TTree *intFTree = new TTree(Form("interF_%d", i), "forward interpolated track results");
     intFTree->Branch("fi", &fi, "i/L:t_ant/D:t_ret/D:x/D:y/D:z/D:ycen/D:zcen/D:r/D:vx/D:vy/D:vz/D:Ef/D:fW_t/D:phase/D:dphdt/D:omega/D");
     TTree *intBTree = new TTree(Form("interB_%d", i), "backward interpolated track results");
@@ -271,8 +267,7 @@ int main(int argc, char *argv[])
     double last_simT;
     double ep, ek, epar, eperp, egain, eloss, b, scatt, wq;
     //read in first line of file, has t = 0
-    trackfile >> last_simX[0] >> last_simX[1] >> last_simX[2] >> last_simR >> ep >> last_ek >> epar >> eperp >> egain >> eloss >> b >>
-                               last_simPhase >> last_simT >> scatt >> wq >> last_simV[0] >> last_simV[1] >> last_simV[2] >> last_simOm;
+    trackfile >> last_simX[0] >> last_simX[1] >> last_simX[2] >> last_simR >> ep >> last_ek >> epar >> eperp >> egain >> eloss >> b >> last_simPhase >> last_simT >> scatt >> wq >> last_simV[0] >> last_simV[1] >> last_simV[2] >> last_simOm;
 
     //values of central tracking simulation point
     double simPhase;
@@ -282,13 +277,12 @@ int main(int argc, char *argv[])
     double simOm;
     double simT;
     //read in second line of file
-    trackfile >> simX[0] >> simX[1] >> simX[2] >> simR >> ep >> ek >> epar >> eperp >> egain >> eloss >> b >> simPhase >> simT >> 
-                                                                           scatt >> wq >> simV[0] >> simV[1] >> simV[2] >> simOm;
+    trackfile >> simX[0] >> simX[1] >> simX[2] >> simR >> ep >> ek >> epar >> eperp >> egain >> eloss >> b >> simPhase >> simT >> scatt >> wq >> simV[0] >> simV[1] >> simV[2] >> simOm;
 
     //check for time steps smaller that tstep
     double minStep = tstep;
     double minIt = -1;
-    if ((simT - last_simT) < minStep) {	//if real time step is smaller than interpolated time step
+    if ((simT - last_simT) < minStep) {    //if real time step is smaller than interpolated time step
       minStep = simT - last_simT;
       minIt = 0;
     }
@@ -304,7 +298,7 @@ int main(int argc, char *argv[])
     //interpolated values 
     long int itf = 0;
     long int itb = 0;
-    Double_t ta0 = abs(x_ant / c);	//time to reach antenna in either direction
+    Double_t ta0 = abs(x_ant / c);    //time to reach antenna in either direction
     //inter_T is time at antenna minus constant offset (ta0), evenly spaced, evaluate power here
     Double_t inter_T = tstep;
     //for_T is retarted time (at time of emission at the particle) for wave in +dir,evaluate pos/vel here
@@ -315,7 +309,7 @@ int main(int argc, char *argv[])
     }
     //bk_T is retarted time (emission tim at particle) for backward or reflected wave
     //if reflected, will add delay of n_del to antenna
-    Int_t n_del = 2 * ta0 / tstep;	//number of tsteps in delay, about 80 
+    Int_t n_del = 2 * ta0 / tstep;    //number of tsteps in delay, about 80 
     Double_t t_del = 2 * ta0 - n_del * tstep;
     if (refCo == 0) {
       //if no reflection, no extra delay
@@ -336,11 +330,7 @@ int main(int argc, char *argv[])
     int nscatters = 0;
 
     //loop over all lines in the track file starting with line 3
-    while (trackfile >> next_simX[0] >> next_simX[1] >> next_simX[2] >>
-           next_simR >> next_ep >> next_ek >> next_epar >> next_eperp >>
-           next_egain >> next_eloss >> next_b >> next_simPhase >> next_simT
-           >> next_scatt >> next_wq >> next_simV[0] >> next_simV[1] >>
-           next_simV[2] >> next_simOm) {
+    while (trackfile >> next_simX[0] >> next_simX[1] >> next_simX[2] >> next_simR >> next_ep >> next_ek >> next_epar >> next_eperp >> next_egain >> next_eloss >> next_b >> next_simPhase >> next_simT >> next_scatt >> next_wq >> next_simV[0] >> next_simV[1] >> next_simV[2] >> next_simOm) {
       iline++;
       //check if real time step is smaller than interpolated time step
       if ((next_simT - simT) < minStep) {
@@ -350,7 +340,7 @@ int main(int argc, char *argv[])
       //now calculate derivates
       drdt = (next_simR - last_simR) / (next_simT - last_simT);
       dphdt = (next_simPhase - last_simPhase) / (next_simT - last_simT);
-      domdt = (next_simOm - last_simOm) / (next_simT - last_simT);	//rad/us^2
+      domdt = (next_simOm - last_simOm) / (next_simT - last_simT);     //rad/us^2
       for (int j = 0; j < 3; j++) {
         dxdt[j] = (next_simX[j] - last_simX[j]) / (next_simT - last_simT);
       }
@@ -369,17 +359,19 @@ int main(int argc, char *argv[])
         inter_T = (itf + 1) * tstep;
         //2- interpolates btw track times to get points evenly spaced in time at the antenna 
         //and calculate the power at the retarded time of the particle
-        inter_R = last_simR + drdt * (for_T - last_simT);	//cm
-        inter_Phase = last_simPhase + dphdt * (for_T - last_simT);	//radians 
-        inter_Om = last_simOm + domdt * (for_T - last_simT);	//rad/usec, 
+        inter_R = last_simR + drdt * (for_T - last_simT);    //cm
+        inter_Phase = last_simPhase + dphdt * (for_T - last_simT);    //radians 
+        inter_Om = last_simOm + domdt * (for_T - last_simT);    //rad/usec, 
         //guiding center position in cm
-        for (int j = 0; j < 3; j++)
+        for (int j = 0; j < 3; j++) {
           inter_X[j] = last_simX[j] + dxdt[j] * (for_T - last_simT);
+        }
         //guiding center velocity in m/s
-        for (int j = 0; j < 3; j++)
+        for (int j = 0; j < 3; j++) {
           inter_V[j] = last_simV[j] + dvdt[j] * (for_T - last_simT);
+        }
         if (abs(inter_X[0]) > abs(x_ant)) {
-          cout << "Warning! Passed Antenna! Exiting Now!" << endl;	//passed antenna
+          cout << "Warning! Passed Antenna! Exiting Now!" << endl;     //passed antenna
           status = 1;
           break;                //passed antenna
         }
@@ -389,11 +381,11 @@ int main(int argc, char *argv[])
         fi.t_ret = for_T;
         fi.x = inter_X[0];      //in cm
         fi.y = inter_X[1] + inter_R * cos(inter_Phase);
-        fi.z = inter_X[2] + inter_R * sin(inter_Phase);	//cm
+        fi.z = inter_X[2] + inter_R * sin(inter_Phase);     //cm
         fi.ycen = inter_X[1];
         fi.zcen = inter_X[2];
         fi.rad = inter_R;
-        fi.vx = inter_V[0] * 1e-4;	//cm/us
+        fi.vx = inter_V[0] * 1e-4;     //cm/us
         fi.vy = inter_V[1] * 1e-4 - inter_R * inter_Om * sin(inter_Phase);
         fi.vz = inter_V[2] * 1e-4 + inter_R * inter_Om * cos(inter_Phase);
         fi.phase = inter_Phase;
@@ -401,7 +393,7 @@ int main(int argc, char *argv[])
         fi.omega = inter_Om;    //at for_T
         status = calculate_radiation(fi, in_for, dir, x_ant);
         fi.Ef = in_for[itf];    //coeff of efield, fN.cm/C
-        fi.fW_t = 1e4 / tl_data.Zw * (pow(in_for[itf], 2));	//should have units of fW 
+        fi.fW_t = 1e4 / tl_data.Zw * (pow(in_for[itf], 2));  //should have units of fW 
         intFTree->Fill();
         itf++;
         inter_T = (itf + 1) * tstep;
@@ -426,13 +418,15 @@ int main(int argc, char *argv[])
         //3- interpolates btw track times to get power reflected from end of antenna 
         //calculate interpolated points
         inter_R = last_simR + drdt * (bk_T - last_simT);
-        inter_Phase = last_simPhase + dphdt * (bk_T - last_simT);	//radians 
-        inter_Om = last_simOm + domdt * (bk_T - last_simT);	//rad/usec, 
+        inter_Phase = last_simPhase + dphdt * (bk_T - last_simT); //radians 
+        inter_Om = last_simOm + domdt * (bk_T - last_simT); //rad/usec, 
         for (int j = 0; j < 3; j++) inter_X[j] = last_simX[j] + dxdt[j] * (bk_T - last_simT);
         //velocity in m/s
-        for (int j = 0; j < 3; j++) inter_V[j] = last_simV[j] + dvdt[j] * (bk_T - last_simT);
+        for (int j = 0; j < 3; j++) {
+          inter_V[j] = last_simV[j] + dvdt[j] * (bk_T - last_simT);
+        }
         if (abs(inter_X[0]) > abs(x_ant)) {
-          cout << "Warning! Passed Antenna! Exiting Now!" << endl;	//passed antenna
+          cout << "Warning! Passed Antenna! Exiting Now!" << endl;      //passed antenna
           status = 1;
           break;                //passed antenna
         }
@@ -442,11 +436,11 @@ int main(int argc, char *argv[])
         bi.t_ret = bk_T;
         bi.x = inter_X[0];      //in cm
         bi.y = inter_X[1] + inter_R * cos(inter_Phase);
-        bi.z = inter_X[2] + inter_R * sin(inter_Phase);	//cm
+        bi.z = inter_X[2] + inter_R * sin(inter_Phase);     //cm
         bi.ycen = inter_X[1];
         bi.zcen = inter_X[2];
         bi.rad = inter_R;
-        bi.vx = inter_V[0] * 1e-4;	//cm/us
+        bi.vx = inter_V[0] * 1e-4;    //cm/us
         bi.vy = inter_V[1] * 1e-4 - inter_R * inter_Om * sin(inter_Phase);
         bi.vz = inter_V[2] * 1e-4 + inter_R * inter_Om * cos(inter_Phase);
         bi.phase = inter_Phase;
@@ -459,7 +453,7 @@ int main(int argc, char *argv[])
           status = calculate_radiation(bi, in_bk, -dir, 3 * x_ant);
         }
         bi.Ef = in_bk[itb];     //coeff of efield, fN.cm/C
-        bi.fW_t = 1e4 / tl_data.Zw * (pow(in_bk[itb], 2));	//should have units of fW 
+        bi.fW_t = 1e4 / tl_data.Zw * (pow(in_bk[itb], 2));    //should have units of fW 
         intBTree->Fill();
         itb++;
         inter_T = (itb + 1) * tstep;
@@ -515,17 +509,25 @@ int main(int argc, char *argv[])
       last_simR = simR;
       last_simPhase = simPhase;
       last_simOm = simOm;
-      for (int j = 0; j < 3; j++) last_simX[j] = simX[j];
+      for (int j = 0; j < 3; j++) {
+        last_simX[j] = simX[j];
+      }
       //for (int j=0; j<3; j++) last_simV[j] = dxdt[j];//calculat from position
-      for (int j = 0; j < 3; j++) last_simV[j] = simV[j];
+      for (int j = 0; j < 3; j++) {
+        last_simV[j] = simV[j];
+      }
       last_ek = ek;
       //reset central values 
       simT = next_simT;
       simR = next_simR;
       simPhase = next_simPhase;
       simOm = next_simOm;
-      for (int j = 0; j < 3; j++) simX[j] = next_simX[j];
-      for (int j = 0; j < 3; j++) simV[j] = next_simV[j];
+      for (int j = 0; j < 3; j++) {
+        simX[j] = next_simX[j];
+      }
+      for (int j = 0; j < 3; j++) {
+        simV[j] = next_simV[j];
+      }
       ek = next_ek;
       b = next_b;
       eloss = next_eloss;
@@ -544,9 +546,9 @@ int main(int argc, char *argv[])
     intBTree->Write();
     trackTree->Write();
     trackfile.close();
-    Long_t it = TMath::Min(itf, itb);	//max time points
-    int max = TMath::Min(Long_t(N), it);	//max time points
-    int maxf = floor(max / 2) + 1;	//max freq points
+    Long_t it = TMath::Min(itf, itb);     //max time points
+    int max = TMath::Min(Long_t(N), it);  //max time points
+    int maxf = floor(max / 2) + 1;        //max freq points
     inter_T = tstep;
     for (it = 0; it < max; it++) {
       //save tree at antenna with noise
@@ -555,25 +557,25 @@ int main(int argc, char *argv[])
       anti.Ef_for = in_for[it]; //coeff of efield, fN.cm/C
       anti.Ef_bk = 0;
       if (n_del <= it) {
-        anti.Ef_bk = refCo * in_bk[it - n_del];	//coeff of efield, fN.cm/C
+        anti.Ef_bk = refCo * in_bk[it - n_del];  //coeff of efield, fN.cm/C
       }
       //use characteristic impedance to get voltage at antenna
-      anti.sig = sqrt(tl_data.Zc / tl_data.Zw) * 1e-17 * in_for[it];	//in Volts
+      anti.sig = sqrt(tl_data.Zc / tl_data.Zw) * 1e-17 * in_for[it];     //in Volts
       if ((!(impedance == 1)) && it >= n_del) {
-        anti.sig += sqrt(tl_data.Zc / tl_data.Zw) * 1e-17 * refCo * in_bk[it - n_del];	//in Volts
+        anti.sig += sqrt(tl_data.Zc / tl_data.Zw) * 1e-17 * refCo * in_bk[it - n_del];     //in Volts
         in_for[it] += refCo * in_bk[it - n_del];
       }
-      anti.noise = r3->Gaus(0, TMath::Sqrt(kT / 2 / tstep * 1e6 * tl_data.Zc) * 1e-19);	//in Volts 
-      anti.vtot = anti.sig + anti.noise;	//volts
-      anti.nEf = sqrt(tl_data.Zw / tl_data.Zc) * 1e+17 * anti.sig;	//fN.cm/C
+      anti.noise = r3->Gaus(0, TMath::Sqrt(kT / 2 / tstep * 1e6 * tl_data.Zc) * 1e-19);    //in Volts 
+      anti.vtot = anti.sig + anti.noise;  //volts
+      anti.nEf = sqrt(tl_data.Zw / tl_data.Zc) * 1e+17 * anti.sig;       //fN.cm/C
       if (addNoise) {
-        anti.nEf = sqrt(tl_data.Zw / tl_data.Zc) * 1e+17 * anti.vtot;	//fN.cm/C
+        anti.nEf = sqrt(tl_data.Zw / tl_data.Zc) * 1e+17 * anti.vtot;    //fN.cm/C
       }
       if (addNoise) {
         in_n[it] = anti.nEf;
       }
-      anti.fW_t = pow(anti.sig, 2) / tl_data.Zc * 1e+38;	//units of fW 
-      anti.nfW_t = pow(anti.vtot, 2) / tl_data.Zc * 1e+38;	//units of fW 
+      anti.fW_t = pow(anti.sig, 2) / tl_data.Zc * 1e+38;     //units of fW 
+      anti.nfW_t = pow(anti.vtot, 2) / tl_data.Zc * 1e+38;   //units of fW 
       wfTree->Fill();
       //finished with antenna data
       inter_T = (it + 2) * tstep;
@@ -603,7 +605,7 @@ int main(int argc, char *argv[])
       fftTree->Branch("pc", &pc, "Hz/D:outr/D:outi/D:fW_f/D:fJ_f/D:fJpHz/D");
       TTree *nfftTree = new TTree(Form("nfft_%d", i), "fft results with noise");
       nfftTree->Branch("npc", &npc, "Hz/D:outr/D:outi/D:fW_f/D:fJ_f/D:fJpHz/D");
-      Double_t delf = 1.0e6 / ti.t;	//now ti.t is max time, in Hz
+      Double_t delf = 1.0e6 / ti.t;    //now ti.t is max time, in Hz
       //calculate power for positive frequencies including 0 and nyquist
       for (int j = 0; j < maxf; j++) {
         //energyf is time-integral square amplitude, total energy at bin f is fJ_f
@@ -626,8 +628,7 @@ int main(int argc, char *argv[])
         }
       }
       //now add in negative frequencies, essentially adding same power in twice b/c r2c FFTW
-      for (int j = maxf; j < max; j++)	//for k=1...maxf-1(excluding DC and nyquist)
-      {
+      for (int j = maxf; j < max; j++) {     //for k=1...maxf-1(excluding DC and nyquist)
         //time-integral square amplitude, total energy at bin f is fJ_f
         //should have units of fJ
         energyf[max - j] += 1e-2 / tl_data.Zw * tstep / max * (pow(out[max - j][0], 2) + pow(out[max - j][1], 2));
@@ -683,12 +684,12 @@ int main(int argc, char *argv[])
       double *freq_array = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
       double *PSD = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
       for (int k = 0; k < max; k++) {
-        powert[k] = 1e4 / tl_data.Zw * (pow(in_for[k], 2));	//should have units of fW 
-        time_array[k] = (k + 1) * tstep / 1.0e6;	//convert to s
+        powert[k] = 1e4 / tl_data.Zw * (pow(in_for[k], 2));    //should have units of fW 
+        time_array[k] = (k + 1) * tstep / 1.0e6;    //convert to s
       }
       for (int k = 0; k < maxf; k++) {
         freq_array[k] = k * delf;
-        PSD[k] = ESD[k] / max / tstep * 1e6;	//should have units of fW per Hz
+        PSD[k] = ESD[k] / max / tstep * 1e6;     //should have units of fW per Hz
       }
 
       cout << "fitting " << endl;

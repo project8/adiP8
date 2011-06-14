@@ -34,8 +34,7 @@ void get_bfield_fg(double *posvec, double *bvec)
   bvec[0] = Bz;
   if (Bz < 1e-12 || r < 1e-12) {
     bvec[1] = bvec[2] = 0.;
-  }
-  else {
+  } else {
     bvec[2] = posvec[2] * Br / (r * 100.);
     bvec[1] = posvec[1] * Br / (r * 100.);
   }

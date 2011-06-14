@@ -15,10 +15,8 @@ Double_t dnde(Double_t ke)
   return sqrt(ke * ke + 2 * 511000 * ke) * (ke + 511000) * (18575 - ke) * (18575 - ke);
 }
 
-
 int main(int argc, char *argv[])
 {
-
   if (argc == 1 || (argc > 1 && (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-help") == 0 || strcmp(argv[1], "-?") == 0))) {
     cout << "Usage: autogen_runfile [nevents] [min_pa] [min_ene] [flatene]" << endl;
     cout << " pa in degrees (default 0); ene in eV (default 0)" << endl;
@@ -27,7 +25,6 @@ int main(int argc, char *argv[])
   }
 
   cout << "repeat___x______y______z______ekin_____theta___phi____mass___charge\n";
-
 
   int nevents = atoi(argv[1]);
   double min_pa = 0;
@@ -47,9 +44,9 @@ int main(int argc, char *argv[])
   double specscale;
   if (min_ene > 3769.26) {
     specscale = dnde(min_ene);
-  }
-  else
+  } else {
     specscale = dnde(3769.26) * 1.01;
+  }
   double y0 = 0.95, z0 = 0.9;
   //double y0=0.95, z0 =0.9;
   double dy = 2 * y0 / nevents;
@@ -73,11 +70,7 @@ int main(int argc, char *argv[])
         ene = min_ene;
         pa = min_pa;
       }
-
-
       printf("%d %g %g %g %g %g %g %g %g\n", 1, x, y, z, ene, pa, 0., 1., 1.);
-
     }
   }
-
 }

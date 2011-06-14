@@ -71,12 +71,15 @@ int main(int argc, char *argv[])
         if (load_init_data(parameter_filename) == 0) {
           cout << endl << "ERROR: missing some settings in INI-file!";
           cout << endl << endl << flush;
-        } else
+        } else {
           parameter_file_found = 1;
-      } else
+        }
+      } else {
         parameter_file_found = 1;
-    } else
+      }
+    } else {
       parameter_file_found = 1;
+    }
 
     if (parameter_file_found == 1) {
       init_status = 0;
@@ -87,10 +90,12 @@ int main(int argc, char *argv[])
           cout << endl << "ERROR: reading of electric potential array failed!" << endl << endl;
           free_electric_arrays();
           init_status -= 10;
-        } else
+        } else {
           init_status += 1;
-      } else
+        }
+      } else {
         init_status += 1;
+      }
 
       if (parameter.use_mag_pa == 1) {
         alloc_mag_arrays();
@@ -98,10 +103,12 @@ int main(int argc, char *argv[])
           cout << endl << "ERROR: reading of magnetic potential array failed!" << endl << endl;
           free_mag_arrays();
           init_status -= 10;
-        } else
+        } else {
           init_status += 1;
-      } else
+        }
+      } else {
         init_status += 1;
+      }
 
       if (init_status > 0) {
         do {

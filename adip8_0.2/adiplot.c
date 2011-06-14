@@ -51,8 +51,9 @@ int main(int argc, char *argv[])
       parameter_file_found = 1;
       cardname.Resize(strlen(parameter_filename) - 4);
     }
-  } else
+  } else {
     parameter_file_found = 1;
+  }
 
   init_data();                  //set default tl_data
   switch (parameter.rad_calc_mode) {
@@ -77,8 +78,8 @@ int main(int argc, char *argv[])
       init_tl_data(kTRUE);
       break;
   }
-  double kT = (parameter.antenna_temp) * 1.38e-8;	//fJ, T=35K, amplifier Teff = 25 K
-  double impedance = parameter.impedance;	//normalized load impedance
+  double kT = (parameter.antenna_temp) * 1.38e-8;    //fJ, T=35K, amplifier Teff = 25 K
+  double impedance = parameter.impedance; //normalized load impedance
   double refCo = (impedance - 1) / (impedance + 1);
   if (std::isinf(impedance)) {
     refCo = 1;
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
     }
     Int_t Ntot = tSize / delt;  //max size of fft
     double delf = 1 / tSize;    //in Hz
-    const Int_t nX = nEntries / Ntot;	//number of ffts
+    const Int_t nX = nEntries / Ntot;     //number of ffts
     cout << "Number of transforms: " << nX << endl;
     Int_t nY = Ntot / 2 + 1;
     double *wf;
@@ -133,8 +134,8 @@ int main(int argc, char *argv[])
     cout << " max time : " << tSize * nX << endl;
     int bin;
     double noiseP = kT * delf;
-    double zCut = 4.6 + log(nY * nX / 4);	//requirement power*noiseP to accept as signal
-    double z0 = 4.6 + log(nY * nX);	//requirement power*noiseP to accept as signal
+    double zCut = 4.6 + log(nY * nX / 4);   //requirement power*noiseP to accept as signal
+    double z0 = 4.6 + log(nY * nX);    //requirement power*noiseP to accept as signal
     Bool_t signalFT = kFALSE;
     cout << "Required signal: " << zCut * noiseP << endl;
     int NsigFT = 0;
@@ -177,7 +178,7 @@ int main(int argc, char *argv[])
       }
       if (signalFT) {
         //add this FT into signal plot, correct for energy loss 
-        int shift = int ((i - t0_i) * slope / delf / delf + 0.5);	//round to nearest integer 
+        int shift = int ((i - t0_i) * slope / delf / delf + 0.5);    //round to nearest integer 
         hPS[NsigFT] = new TH1F(Form("hPS_%d_%d", NsigFT, event), Form("Power Spectra %d w/ signal; Frequency (MHz); Power (fW)", i), nY, -0.5 * delf * 1e-6, (nY - 0.5) * delf * 1e-6);
         for (int j = 0; j <= Ntot / 2; j++) {
           hPSa->AddBinContent(j, powerf[j + shift]);
@@ -202,7 +203,7 @@ int main(int argc, char *argv[])
     //check averaged plot has correct noise
     double tempP;
     for (int j = 0; j <= Ntot / 2; j++) {
-      tempP = hPSa->GetBinContent(j);	//check that noise is correct distribution
+      tempP = hPSa->GetBinContent(j);       //check that noise is correct distribution
       hna->Fill(tempP);
     }
     ntarray[0] = event;
@@ -220,6 +221,4 @@ int main(int argc, char *argv[])
   eloss->Write();
   //tfout->Write();
   tfout->Close();
-
-
 }
