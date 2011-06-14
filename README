@@ -1,1 +1,4 @@
 Adiabatic particle tracking for Project8.
+
+To Compile (requires ROOT and FFTW3):
+make
