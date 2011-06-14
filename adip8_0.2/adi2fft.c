@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
     char *parameter_filename_sub = new char[255];
     cout << "Try parameter file w/o suffix: ";
     strncat(parameter_filename_sub,parameter_filename,strlen(parameter_filename)-4);
-    cout << parameter_filename_sub << endl;	
+    cout << parameter_filename_sub << endl;
     if (load_init_data(parameter_filename_sub) == 0)
     {
       cout << "Try parameter file w/o point: ";
@@ -103,14 +103,14 @@ int main(int argc, char* argv[])
       strncat(parameter_filename_sub,parameter_filename,strlen(parameter_filename)-1);
       cout << parameter_filename_sub << endl;
       if (load_init_data(parameter_filename_sub) == 0)
-	    {
-	      cout << endl << "ERROR: missing some settings in INI-file!";
-	      cout << endl << endl << flush;
-	    }
+        {
+        cout << endl << "ERROR: missing some settings in INI-file!";
+        cout << endl << endl << flush;
+        }
       else 
       {
         parameter_file_found = 1;
-	      cardname.Resize(strlen(parameter_filename)-1);
+        cardname.Resize(strlen(parameter_filename)-1);
       }
     }
     else  
@@ -165,26 +165,26 @@ int main(int argc, char* argv[])
   init_data(); //set tl geometry in radiation.c 
   switch (parameter.rad_calc_mode)
   {
-          case 2://parallel wires
-		init_tl_data(kFALSE); 
-                break;
-          case 3://square wg
-		init_sq_wg_data(omega0/c); 
-                //Warning!  Wave imp. for TE modes freq dep, not implemented properly
-                break;
-          case 4://circular wg
-		init_circ_wg_data(omega0/c); 
-                //Warning!  Wave imp. for TE modes freq dep, not implemented properly
-                break;
-          case 5://parallel plates/strips
-		init_pp_data(); 
-                break;
-          case 6://coaxial cable
-		init_coax_data(); 
-                break;
-          case 7://offset parallel wires
-		init_tl_data(kTRUE); 
-                break;
+    case 2://parallel wires
+      init_tl_data(kFALSE); 
+      break;
+    case 3://square wg
+      init_sq_wg_data(omega0/c); 
+      //Warning!  Wave imp. for TE modes freq dep, not implemented properly
+      break;
+    case 4://circular wg
+      init_circ_wg_data(omega0/c); 
+      //Warning!  Wave imp. for TE modes freq dep, not implemented properly
+      break;
+    case 5://parallel plates/strips
+      init_pp_data(); 
+      break;
+    case 6://coaxial cable
+      init_coax_data(); 
+      break;
+    case 7://offset parallel wires
+      init_tl_data(kTRUE); 
+      break;
   }
   //cout << "Reflection Coefficient " << refCo << endl;
   double atten = 0;
@@ -387,7 +387,7 @@ int main(int argc, char* argv[])
         inter_T = (itb+1)*tstep;
         //3- interpolates btw track times to get power reflected from end of antenna 
         //calculate interpolated points
-        inter_R = last_simR + drdt*(bk_T-last_simT);	      
+        inter_R = last_simR + drdt*(bk_T-last_simT);      
         inter_Phase = last_simPhase + dphdt*(bk_T-last_simT);//radians 
         inter_Om = last_simOm + domdt*(bk_T-last_simT);//rad/usec, 
         for (int j=0; j<3; j++) inter_X[j]=last_simX[j]+dxdt[j]*(bk_T-last_simT);
@@ -683,7 +683,12 @@ int main(int argc, char* argv[])
   tfout->Close();
   
 }
+
+
 int calculate_radiation(INTERINFO ii, double* in, double dir, double d_ant) {
+  /*
+    <insert doc string here>
+  */
   Double_t position[3],velocity[3], omega, phase, atten;
   position[0]= ii.x;
   position[1]= ii.y;
