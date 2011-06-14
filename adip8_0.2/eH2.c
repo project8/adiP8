@@ -265,91 +265,87 @@ void randomexc(double E, double *Eloss, double *theta)
     }
     
 // Calculation of c=cos(theta) and theta:
-        x = exp(y);
+    x = exp(y);
     c = 1. - (x - xmin) / (4. * T);
     *theta = acos(c) * 180. / M_PI;
+  } else if (E <= 25.) {
+    Dmax = 60.;
+  } else if (E > 25. && E <= 35.) {
+    Dmax = 95.;
+  } else if (E > 35. && E <= 50.) {
+    Dmax = 150.;
+  } else {
+    Dmax = 400.;
+  }
+  for (j = 1; j < 5000; j++) {
+    subrn(u, 2);
+    c = -1. + 2. * u[1];
+    D = Dexc(E, c) * 1.e22;
+    if (Dmax * u[2] < D) {
+      break;
     }
-  
-  else
-     {
-    if (E <= 25.)
-      Dmax = 60.;
-    
-    else if (E > 25. && E <= 35.)
-      Dmax = 95.;
-    
-    else if (E > 35. && E <= 50.)
-      Dmax = 150.;
-    
-    else
-      Dmax = 400.;
-    for (j = 1; j < 5000; j++)
-       {
-      subrn(u, 2);
-      c = -1. + 2. * u[1];
-      D = Dexc(E, c) * 1.e22;
-      if (Dmax * u[2] < D)
-        break;
-      }
-    *theta = acos(c) * 180. / M_PI;
-    }
+  }
+  *theta = acos(c) * 180. / M_PI;
   
 // Energy loss *Eloss generation:
       
 // First we generate the electronic state, using the Neumann
 // acceptance-rejection method for discrete distribution:
-      N = 7;                    // the number of electronic states in our calculation
+  N = 7;                    // the number of electronic states in our calculation
   pmax = p[1];                  // the maximum of the p[] values
-  for (j = 1; j < 5000; j++)
-     {
+  for (j = 1; j < 5000; j++) {
     subrn(u, 2);
     n = (int) (N * u[1]);
-    if (u[2] * pmax < p[n])
+    if (u[2] * pmax < p[n]) {
       break;
     }
-  if (n < 0)
+  }
+  if (n < 0) {
     n = 0;
-  if (n > 6)
+  } 
+  if (n > 6) {
     n = 6;
-  if (n > 1)                   // Bp, Bpp, D, Dp, EF states
-  {
+  }
+  if (n > 1) {                  // Bp, Bpp, D, Dp, EF states
     *Eloss = En[n] * 27.2;
     return;
   }
-  if (n == 0)                  // B state; we generate now a vibrational state,
-    // using the Frank-Condon factors
-  {
+  if (n == 0) {                 // B state; we generate now a vibrational state,
+                                // using the Frank-Condon factors
     N = 28;                     // the number of B vibrational states in our calculation
     pmax = pB[7];               // maximum of the pB[] values
-    for (j = 1; j < 5000; j++)
-       {
+    for (j = 1; j < 5000; j++) {
       subrn(u, 2);
       v = (int) (N * u[1]);
-      if (u[2] * pmax < pB[v])
+      if (u[2] * pmax < pB[v]) {
         break;
       }
-    if (v < 0)
+    }
+    if (v < 0) {
       v = 0;
-    if (v > 27)
+    }
+    if (v > 27) {
       v = 27;
+    }
     *Eloss = EB[v] * 27.2;
   }
-  if (n == 1)                  // C state; we generate now a vibrational state,
+  if (n == 1) {                 // C state; we generate now a vibrational state,
     // using the Franck-Condon factors
-  {
     N = 14;                     // the number of C vibrational states in our calculation
     pmax = pC[1];               // maximum of the pC[] values
-    for (j = 1; j < 5000; j++)
-       {
+    for (j = 1; j < 5000; j++) {
       subrn(u, 2);
       v = (int) (N * u[1]);
-      if (u[2] * pmax < pC[v])
+      if (u[2] * pmax < pC[v]) {
         break;
       }
-    if (v < 0)
+    }
+    if (v < 0) {
       v = 0;
-    if (v > 13)
+    }
+    if (v > 13) {
       v = 13;
+    }
     *Eloss = EC[v] * 27.2;
   }
   return;
@@ -382,21 +378,18 @@ double sigmaion(double E)
 //
   static double B = 15.43, U = 15.98, R = 13.6, a02 = 0.28e-20;
   double sigma, t, u, S, r, lnt;
-  if (E < 16.)
+  if (E < 16.) {
     sigma = 1.e-40;
-  
-  else if (E >= 16. && E <= 250.)
-     {
+  } else if (E >= 16. && E <= 250.) {
     t = E / B;
     u = U / B;
     r = R / B;
     S = 4. * M_PI * a02 * 2. * r * r;
     lnt = log(t);
     sigma = S / (t + u + 1.) * (lnt / 2. * (1. - 1. / (t * t)) + 1. - 1. / t - lnt / (t + 1.));
-    }
-  
-  else
+  } else {
     sigma = 4. * M_PI * a02 * R / E * (0.82 * log(E / R) + 1.3);
+  }
   return sigma;
 }
 
@@ -427,8 +420,9 @@ void randomion(double E, double *Eloss, double *theta)
 // I. Generation of theta
 // -----------------------
       Gmax = 1.e-20;
-  if (E < 200.)
+  if (E < 200.) {
     Gmax = 2.e-20;
+  }
   T = E / 27.2;
   xmin = Ei * Ei / (2. * T);
   b = xmin / (4. * T);
@@ -436,19 +430,19 @@ void randomion(double E, double *Eloss, double *theta)
   ymax = log(8. * T + xmin);
   
 // Generation of y values with the Neumann acceptance-rejection method:
-      for (j = 1; j < 5000; j++)
-     {
+  for (j = 1; j < 5000; j++) {
     subrn(u, 2);
     y = ymin + (ymax - ymin) * u[1];
     K = exp(y / 2.);
     c = 1. + b - K * K / (4. * T);
     G = K * K * (Dinel(E, c) - Dexc(E, c));
-    if (Gmax * u[2] < G)
+    if (Gmax * u[2] < G) {
       break;
     }
+  }
   
 // y --> x --> c --> theta
-      x = exp(y);
+  x = exp(y);
   c = 1. - (x - xmin) / (4. * T);
   *theta = acos(c) * 180. / M_PI;
   
@@ -458,94 +452,93 @@ void randomion(double E, double *Eloss, double *theta)
 //
 // For E<=100 eV we use subr. gensecelen
 //   (in this case no correlation between theta and Eloss)
-      if (E <= 100.)
-     {
+  if (E <= 100.) {
     gensecelen(E, &W);
     *Eloss = 15.45 + W;
     return;
-    }
+  }
   
 // For theta>=20 the free electron model is used
 //   (with full correlation between theta and Eloss)
-      if (*theta >= 20.)
-     {
+  if (*theta >= 20.) {
     *Eloss = E * (1. - c * c);
     return;
-    }
+  }
   
 // For E>100 eV and theta<20: analytical first Born approximation
 //   formula of Bethe for H atom (with modification for H2)
 //
 // Calc. of wmax:
-      if (*theta >= 0.7)
+  if (*theta >= 0.7) {
     wmax = 1.1;
-  
-  else if (*theta <= 0.7 && *theta > 0.2)
+  } else if (*theta <= 0.7 && *theta > 0.2) {
     wmax = 2.;
-  
-  else if (*theta <= 0.2 && *theta > 0.05)
+  } else if (*theta <= 0.2 && *theta > 0.05) {
     wmax = 4.;
-  
-  else
+  } else {
     wmax = 8.;
+  }
   
 // We generate the q value according to the Jstarq pdf. We have to
 // define the qmin and qmax limits for this generation:
-      K = sqrt(4. * T * (1. - Ei / (2. * T) - sqrt(1. - Ei / T) * c));
+  K = sqrt(4. * T * (1. - Ei / (2. * T) - sqrt(1. - Ei / T) * c));
   Elmin = Ei;
   Elmax = (E + 15.45) / 2. / 27.2;
   qmin = Elmin / K - K / 2.;
   qmax = Elmax / K - K / 2.;
   
 //
-      q = qmax;
+  q = qmax;
   Fmax = 1. / 2. + 1. / M_PI * (q / (1. + q * q) + atan(q));
   q = qmin;
   Fmin = 1. / 2. + 1. / M_PI * (q / (1. + q * q) + atan(q));
   h = Fmax - Fmin;
   
 // Generation of Eloss with the Neumann acceptance-rejection method:
-      for (j = 1; j < 5000; j++)
-     {
+  for (j = 1; j < 5000; j++) {
     
 // Generation of q with inverse transform method
 // (we use the Newton-Raphson method in order to solve the nonlinear eq.
 // for the inversion) :
-        subrn(u, 2);
+    subrn(u, 2);
     F = Fmin + h * u[1];
     y = 0.;
-    for (i = 1; i <= 30; i++)
-       {
+    for (i = 1; i <= 30; i++) {
       G = 1. / 2. + (y + sin(2. * y) / 2.) / M_PI;
       Gp = (1. + cos(2. * y)) / M_PI;
       y = y - (G - F) / Gp;
-      if (fabs(G - F) < 1.e-8)
+      if (fabs(G - F) < 1.e-8) {
         break;
       }
+    }
     q = tan(y);
     
 // We have the q value, so we can define El, and calculate the weight:
-        El = q * K + K * K / 2.;
+    El = q * K + K * K / 2.;
     
 // First Born approximation formula of Bethe for e-H ionization:
-        KK = K;
+    KK = K;
     ki = sqrt(2. * T);
     kf = sqrt(2. * (T - El));
     K2 = 4. * T * (1. - El / (2. * T) - sqrt(1. - El / T) * c);
-    if (K2 < 1.e-9)
+    if (K2 < 1.e-9) {
       K2 = 1.e-9;
+    }
     K = sqrt(K2);              // momentum transfer
     Rex = 1. - K * K / (kf * kf) + K2 * K2 / (kf * kf * kf * kf);
     kej = sqrt(2. * fabs(El - Ei) + 1.e-8);
     st1 = K2 - 2. * El + 2.;
-    if (fabs(st1) < 1.e-9)
+    if (fabs(st1) < 1.e-9) {
       st1 = 1.e-9;
+    }
     arg = 2. * kej / st1;
-    if (arg >= 0.)
+    if (arg >= 0.) {
       arctg = atan(arg);
+    }
     
-    else
+    else {
       arctg = atan(arg) + M_PI;
+    }
     st1 = (K + kej) * (K + kej) + 1.;
     st2 = (K - kej) * (K - kej) + 1.;
     fE = 1024. * El * (K2 + 2. / 3. * El) / (st1 * st1 * st1 * st2 * st2 * st2) * exp(-2. / kej * arctg) / (1. - exp(-2. * M_PI / kej));
@@ -553,19 +546,20 @@ void randomion(double E, double *Eloss, double *theta)
     K = KK;
     
 //
-        WcE = D2ion;
+    WcE = D2ion;
     Jstarq = 16. / (3. * M_PI * (1. + q * q) * (1. + q * q));
     WcstarE = 4. / (K * K * K * K * K) * Jstarq;
     w = WcE / WcstarE;
-    if (wmax * u[2] < w)
+    if (wmax * u[2] < w) {
       break;
     }
+  }
   
 //
-      *Eloss = El * 27.2;
+  *Eloss = El * 27.2;
   
 //
-      return;
+  return;
 }
 
 
@@ -589,81 +583,72 @@ double Del(double E, double c)
 // Del: in m^2/steradian
   static double a02 = 28.e-22;  // Bohr radius squared
   static double clight = 137.;  // velocity of light in atomic units
-  static double Cel[50] =
-      { -0.512, -0.512, -0.509, -0.505, -0.499, -0.491, -0.476, -0.473, -0.462, -0.452, -0.438, -0.422, -0.406, -0.388, -0.370, -0.352, -0.333, -0.314, -0.296, -0.277, -0.258, -0.239, -0.221,
--0.202, -0.185, -0.167, -0.151, -0.135, -0.120, -0.105, -0.092, -0.070, -0.053, -0.039, -0.030, -0.024, -0.019, -0.016, -0.014, -0.013, -0.012, -0.009, -0.008, -0.006, -0.005, -0.004, -0.003, -0.002, -0.002,
--0.001
-  };
+  static double Cel[50] = { -0.512, -0.512, -0.509, -0.505, -0.499, -0.491, -0.476, -0.473, -0.462, -0.452, -0.438, -0.422, -0.406, -0.388, -0.370, -0.352, -0.333, -0.314, -0.296, -0.277, -0.258, -0.239, -0.221, -0.202, -0.185, -0.167, -0.151, -0.135, -0.120, -0.105, -0.092, -0.070, -0.053, -0.039, -0.030, -0.024, -0.019, -0.016, -0.014, -0.013, -0.012, -0.009, -0.008, -0.006, -0.005, -0.004, -0.003, -0.002, -0.002, -0.001 };
   static double e[10] = { 0., 3., 6., 12., 20., 32., 55., 85., 150., 250. };
-  static double t[10] = { 0., 10., 20., 30., 40., 60., 80., 100., 140., 180. };
-  static double D[9][10] = { 
-        {2.9, 2.7, 2.5, 2.1, 1.8, 1.2, 0.9, 1., 1.6, 1.9}, 
-      {4.2, 3.6, 3.1, 2.5, 1.9, 1.1, 0.8, 0.9, 1.3, 1.4}, 
-      {6., 4.4, 3.2, 2.3, 1.8, 1.1, 0.7, 0.54, 0.5, 0.6}, 
-      {6., 4.1, 2.8, 1.9, 1.3, 0.6, 0.3, 0.17, 0.16, 0.23}, 
-      {4.9, 3.2, 2., 1.2, 0.8, 0.3, 0.15, 0.09, 0.05, 0.05}, 
-      {5.2, 2.5, 1.2, 0.64, 0.36, 0.13, 0.05, 0.03, 0.016, 0.02}, 
-      {4., 1.7, 0.7, 0.3, 0.16, 0.05, 0.02, 0.013, 0.01, 0.01}, {2.8, 1.1, 0.4, 0.15, 0.07, 0.02, 0.01, 0.007, 0.004, 0.003}, {1.2, 0.53, 0.2, 0.08, 0.03, 0.0074, 0.003, 0.0016, 0.001, 0.0008}
+  static double t[10] = { 0., 10., 20., 30.,  40., 60., 80., 100., 140., 180. };
+  static double D[9][10] = { {2.9, 2.7,  2.5,  2.1,  1.8,  1.2,    0.9,   1.,     1.6,   1.9}, 
+                             {4.2, 3.6,  3.1,  2.5,  1.9,  1.1,    0.8,   0.9,    1.3,   1.4}, 
+                             {6.,  4.4,  3.2,  2.3,  1.8,  1.1,    0.7,   0.54,   0.5,   0.6}, 
+                             {6.,  4.1,  2.8,  1.9,  1.3,  0.6,    0.3,   0.17,   0.16,  0.23}, 
+                             {4.9, 3.2,  2.,   1.2,  0.8,  0.3,    0.15,  0.09,   0.05,  0.05}, 
+                             {5.2, 2.5,  1.2,  0.64, 0.36, 0.13,   0.05,  0.03,   0.016, 0.02}, 
+                             {4.,  1.7,  0.7,  0.3,  0.16, 0.05,   0.02,  0.013,  0.01,  0.01},
+                             {2.8, 1.1,  0.4,  0.15, 0.07, 0.02,   0.01,  0.007,  0.004, 0.003},
+                             {1.2, 0.53, 0.2,  0.08, 0.03, 0.0074, 0.003, 0.0016, 0.001, 0.0008}
   };
   double T, K2, K, d, st1, st2, DH, gam, Delreturn = 0., CelK, Ki, theta;
   int i, j;
   T = E / 27.2;
-  if (E >= 250.)
-     {
+  if (E >= 250.) {
     gam = 1. + T / (clight * clight);	// relativistic correction factor
     K2 = 2. * T * (1. + gam) * (1. - c);
-    if (K2 < 0.)
+    if (K2 < 0.) {
       K2 = 1.e-30;
+    }
     K = sqrt(K2);
-    if (K < 1.e-9)
+    if (K < 1.e-9) {
       K = 1.e-9;                // momentum transfer
+    }
     d = 1.4009;                 // distance of protons in H2
     st1 = 8. + K2;
     st2 = 4. + K2;
     
 // DH is the diff. cross section for elastic electron scatt.
 // on atomic hydrogen within the first Born approximation :
-        DH = 4. * st1 * st1 / (st2 * st2 * st2 * st2) * a02;
+    DH = 4. * st1 * st1 / (st2 * st2 * st2 * st2) * a02;
     
 // CelK calculation with linear interpolation.
 // CelK is the correction of the elastic electron
 // scatt. on molecular hydrogen compared to the independent atom
 // model.
-        if (K < 3.)
-       {
+    if (K < 3.) {
       i = (int) (K / 0.1);
       Ki = i * 0.1;
       CelK = Cel[i] + (K - Ki) / 0.1 * (Cel[i + 1] - Cel[i]);
-      }
-    
-    else if (K >= 3. && K < 5.)
-       {
+    } else if (K >= 3. && K < 5.) {
       i = (int) (30 + (K - 3.) / 0.2);
       Ki = 3. + (i - 30) * 0.2;
       CelK = Cel[i] + (K - Ki) / 0.2 * (Cel[i + 1] - Cel[i]);
-      }
-    
-    else if (K >= 5. && K < 9.49)
-       {
+    } else if (K >= 5. && K < 9.49) {
       i = (int) (40 + (K - 5.) / 0.5);
       Ki = 5. + (i - 40) * 0.5;
       CelK = Cel[i] + (K - Ki) / 0.5 * (Cel[i + 1] - Cel[i]);
-      }
-    
-    else
+    } else {
       CelK = 0.;
+    }
     Delreturn = 2. * gam * gam * DH * (1. + sin(K * d) / (K * d)) * (1. + CelK);
-    }
-  
-  else
-     {
+  } else {
     theta = acos(c) * 180. / M_PI;
-    for (i = 0; i <= 8; i++)
-      if (E >= e[i] && E < e[i + 1])
-        for (j = 0; j <= 8; j++)
-          if (theta >= t[j] && theta < t[j + 1])
+    for (i = 0; i <= 8; i++) {
+      if (E >= e[i] && E < e[i + 1]) {
+        for (j = 0; j <= 8; j++) {
+          if (theta >= t[j] && theta < t[j + 1]) {
             Delreturn = 1.e-20 * (D[i][j] + (D[i][j + 1] - D[i][j]) * (theta - t[j]) / (t[j + 1] - t[j]));
+          }
+        }
+      }
     }
+  }
   return Delreturn;
 }
 
@@ -683,27 +668,25 @@ double Dexc(double E, double c)
   static double EE = 12.6 / 27.2;
   static double e[5] = { 0., 25., 35., 50., 100. };
   static double t[9] = { 0., 10., 20., 30., 40., 60., 80., 100., 180. };
-  static double D[4][9] = { 
-        {60., 43., 27., 18., 13., 8., 6., 6., 6.}, {95., 70., 21., 9., 6., 3., 2., 2., 2.,}, {150., 120., 32., 8., 3.7, 1.9, 1.2, 0.8, 0.8}, {400., 200., 12., 2., 1.4, 0.7, 0.3, 0.2, 0.2}
-  };
+  static double D[4][9] = { {60., 43., 27., 18., 13., 8., 6., 6., 6.}, 
+                            {95., 70., 21., 9., 6., 3., 2., 2., 2.,}, 
+                            {150., 120., 32., 8., 3.7, 1.9, 1.2, 0.8, 0.8}, 
+                            {400., 200., 12., 2., 1.4, 0.7, 0.3, 0.2, 0.2}
+                          };
   int i, j;
   
 //
-      T = E / 27.2;
-  if (E >= 100.)
-     {
+  T = E / 27.2;
+  if (E >= 100.) {
     K2 = 4. * T * (1. - EE / (2. * T) - sqrt(1. - EE / T) * c);
-    if (K2 < 1.e-9)
+    if (K2 < 1.e-9) {
       K2 = 1.e-9;
+    }
     K = sqrt(K2);              // momentum transfer
     sigma = 2. / K2 * sumexc(K) * a02;
-    }
-  
-  else if (E <= 10.)
+  } else if (E <= 10.) {
     sigma = 0.;
-  
-  else
-     {
+  } else {
     theta = acos(c) * 180. / M_PI;
     for (i = 0; i <= 3; i++)
       if (E >= e[i] && E < e[i + 1])
