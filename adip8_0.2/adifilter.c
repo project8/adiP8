@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     parameter_file_found = 1;
   }
 
-  double kT = (parameter.antenna_temp) * 1.38e-8;	//fJ, T=35K, amplifier Teff = 25 K
+  double kT = (parameter.antenna_temp) * 1.38e-8;     //fJ, T=35K, amplifier Teff = 25 K
   Bool_t addNoise = kFALSE;
   if (kT > 0) {
     addNoise = kTRUE;
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
   static ANTINFO wfi;           //with added time points, like real waveform
   //fft output (after fileter) 
   typedef struct {
-    Double_t Hz, outr, outi, fW_f, fJ_f, fJpHz;	//from fftw
+    Double_t Hz, outr, outi, fW_f, fJ_f, fJpHz;   //from fftw
   } POWERCALC;
   static POWERCALC pc;          //short
   static POWERCALC npc;         //long time series with noise
@@ -176,11 +176,11 @@ int main(int argc, char *argv[])
     cout << "done backward fft" << endl;
 
     //write time domain to file
-    Double_t delt = 1 / 2.0 / fMax;	//in seconds, =1/SF
+    Double_t delt = 1 / 2.0 / fMax;     //in seconds, =1/SF
     double sig[max];
     double noise[max];
     for (int j = 0; j < max; j++) {
-      out_td[j] = out_td[j] / 2 / (nEntries - 1);	//backward needs to be normalized
+      out_td[j] = out_td[j] / 2 / (nEntries - 1);     //backward needs to be normalized
       anti.i = j;
       anti.t = (j + 1) * delt;
       anti.Ef = out_td[j];      //no noise
@@ -188,13 +188,13 @@ int main(int argc, char *argv[])
       noise[j] = r3->Gaus(0, sqrt(kT * fMax * tl_data.Zc) * 1e-19);
       out_td[j] = sig[j];
       if (addNoise) {
-        out_td[j] = sig[j] + noise[j];	//units sqrt fW
+        out_td[j] = sig[j] + noise[j];    //units sqrt fW
       }
       anti.sig = sig[j];
       anti.noise = noise[j];
       anti.vtot = sig[j] + noise[j];
-      anti.fW_t = pow(sig[j], 2) / tl_data.Zc * 1e+38;	//units of fW, no noise
-      anti.nfW_t = pow(anti.vtot, 2) / tl_data.Zc * 1e+38;	//units of fW, with noise
+      anti.fW_t = pow(sig[j], 2) / tl_data.Zc * 1e+38;    //units of fW, no noise
+      anti.nfW_t = pow(anti.vtot, 2) / tl_data.Zc * 1e+38;     //units of fW, with noise
       tfout->cd();
       antTree->Fill();
     }
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
     }
     ofstream outFile;
     if (printDAT) {
-      outFile.open(cardname + "_VolVsT.dat");	//fix
+      outFile.open(cardname + "_VolVsT.dat");     //fix
       outFile << "time [s]\t" << "voltage [sqrt(fW)]" << endl;
       //outFile.setf(ios::fixed,ios::floatfield);
       outFile.precision(6);
@@ -267,14 +267,14 @@ int main(int argc, char *argv[])
       wfi.Ef = 0;               //no noise
       wfi.noise = wf[j];
       if (j >= start && j < start + max) {
-        wf[j] = out_td[j - start];	//units volts
-        wfi.sig = sig[j - start];	//units volts
-        wfi.Ef = sig[j - start] * 1e17 / sqrt(tl_data.Zc / tl_data.Zw);	//no noise
+        wf[j] = out_td[j - start];     //units volts
+        wfi.sig = sig[j - start];      //units volts
+        wfi.Ef = sig[j - start] * 1e17 / sqrt(tl_data.Zc / tl_data.Zw);   //no noise
         wfi.noise = noise[j - start];
       }
       wfi.vtot = wf[j];
-      wfi.fW_t = pow(wfi.sig, 2) / tl_data.Zc * 1e+38;	//units of fW, no noise
-      wfi.nfW_t = pow(wf[j], 2) / tl_data.Zc * 1e+38;	//units of fW, includes noise
+      wfi.fW_t = pow(wfi.sig, 2) / tl_data.Zc * 1e+38;     //units of fW, no noise
+      wfi.nfW_t = pow(wf[j], 2) / tl_data.Zc * 1e+38;     //units of fW, includes noise
       if (printDAT) {
         outFile << j * delt << "\t" << wf[j] << endl;
       }
