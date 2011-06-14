@@ -39,8 +39,7 @@ typedef struct {
   Double_t vx, vy, vz;
   Double_t Ef, fW_t, phase, dphdt, omega;
 } INTERINFO;
-int calculate_radiation(INTERINFO ii, double *in, double dir,
-                        double d_ant);
+int calculate_radiation(INTERINFO ii, double *in, double dir, double d_ant);
 
 int main(int argc, char *argv[])
 {
@@ -94,8 +93,7 @@ int main(int argc, char *argv[])
 
     char *parameter_filename_sub = new char[255];
     cout << "Try parameter file w/o suffix: ";
-    strncat(parameter_filename_sub, parameter_filename,
-            strlen(parameter_filename) - 4);
+    strncat(parameter_filename_sub, parameter_filename, strlen(parameter_filename) - 4);
     cout << parameter_filename_sub << endl;
     if (load_init_data(parameter_filename_sub) == 0) {
       cout << "Try parameter file w/o point: ";
@@ -114,8 +112,8 @@ int main(int argc, char *argv[])
       cardname.Resize(strlen(parameter_filename) - 4);
     }
   } else {
-      parameter_file_found = 1;
-    }
+    parameter_file_found = 1;
+  }
 
   //open run file
   TString runname = cardname + TString(".run");
