@@ -1,8 +1,8 @@
 CXXFLAGS := $(CXXFLAGS) -g
 INCDIRS := -I/usr/include -I$(ROOTSYS)/include -I./include
 
-TARGETDIR := .
-OBJDIR := .
+TARGETDIR := ./bin
+OBJDIR := ./tmp
 SRCDIR := ./src
 
 OBJECTS := radiation.o frequency.o paramanage.o mag_pa_tool.o fft_fitter.o bfield_ferenc.o matrix_tool.o vector_tool.o math_tool.o sim_core.o sim_pilot.o el_pa_tool.o sim_help.o sim_scatter.o eH2.o
