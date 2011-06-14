@@ -1,4 +1,11 @@
 Adiabatic particle tracking for Project8.
 
 To Compile (requires ROOT and FFTW3):
+./configure
 make
+
+* the configure shell script is NOT a standard "configure" in that it does not create/modify a makefile.
+It also does NOT check for dependencies. All it currently does is ensure the existence of the ./bin and ./tmp directories.
+
+Wishlist:
+~Produce a "proper" configure script to check for dependencies, create directories, and setup the makefile with your compiler.
