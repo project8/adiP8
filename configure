@@ -1,0 +1,25 @@
+#!/bin/bash
+echo ""
+echo "!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!"
+echo ""
+echo "This isn't a proper configure script."
+echo "All it does is ensure proper directory structure."
+echo ""
+echo "!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!"
+echo ""
+if [ -d ./bin ];
+  then
+    echo "Checking for ./bin ...............yes"
+  else 
+    echo "Checking for ./bin ...............no"
+    mkdir ./bin
+    if [ -d ./bin ]; then echo "./bin created";fi
+fi
+if [ -d ./tmp ];
+  then
+    echo "Checking for ./tmp ...............yes"
+  else 
+    echo "Checking for ./tmp ...............no"
+    mkdir ./tmp
+    if [ -d ./tmp ]; then echo "./tmp created";fi
+fi
