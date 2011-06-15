@@ -73,10 +73,16 @@ void magfield(double z, double r, double *A, double *Bz, double *Br)
   int iA, iBz, iBr;
   double Aplus[nmax + 1], Bzplus[nmax + 1], Brplus[nmax + 1];
   double A1, Bz1, Br1;
-//
+  char mag_filename[255];       // filename for magsource data
+
+  strcpy(mag_filename, parameter.filename);
+  strcat(mag_filename, ".magsource"); // data input from file with extension .ini
 // Input from file magsource.dat:
   if (iff == 0) {
-    fp = fopen("magsource.dat", "r");
+    fp = fopen(mag_filename, "r");
+    if (fp ==NULL) {
+      cout << "Can't open magsource file " << mag_filename << endl;
+    }
     fscanf(fp, "%i %i", &Nsp, &nmaxtest);
     if (Nsp > Nspmax || nmaxtest != nmax) {
       printf("Message from subroutine magfield: Nsp > Nspmax or different nmax values used in magsource and magfield !!! Computation is  stopped !!! \n\n");

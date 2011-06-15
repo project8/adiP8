@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
   TROOT rsession("test", "test");
   //data from adipark tracking, no interpolation
   typedef struct {
-    Double_t t, xcen, ycen, zcen, rad;
-    Double_t vx, vy, vz;
-    Double_t ekin, eloss, b, phase, omega;
+    Double_t t, xcen, ycen, zcen, rad;    //units us, cm
+    Double_t vx, vy, vz;                  //units cm/us 
+    Double_t ekin, eloss, b, phase, omega;//units eV, T, rad/us
   } TRACKINFO;
   static TRACKINFO ti;
 
@@ -69,13 +69,17 @@ int main(int argc, char *argv[])
   //time-domain antenna data similar to real data, with noise
   typedef struct {
     Long_t i;
-    Double_t t, Ef_for, Ef_bk, nEf, fW_t, nfW_t, sig, noise, vtot;
+    Double_t t, Ef_for, Ef_bk, nEf;//units s, fN.cm/C
+    Double_t fW_t, nfW_t;          //units fW
+    Double_t sig, noise, vtot;     //units V
   } ANTINFO;
   static ANTINFO anti;
 
   //fourier transform results
   typedef struct {
-    Double_t Hz, outr, outi, fW_f, fJ_f, fJpHz; //from fftw
+    Double_t Hz;                //units Hz
+    Double_t outr, outi;        //from fftw
+    Double_t fW_f, fJ_f, fJpHz; //units fW, fJ
   } POWERCALC;
   static POWERCALC pc;          //without noise
   static POWERCALC npc;         //with noise
@@ -551,7 +555,7 @@ int main(int argc, char *argv[])
     for (it = 0; it < max; it++) {
       //save tree at antenna with noise
       anti.i = it;
-      anti.t = inter_T;
+      anti.t = inter_T*1e-6;//convert to seconds
       anti.Ef_for = in_for[it]; //coeff of efield, fN.cm/C
       anti.Ef_bk = 0;
       if (n_del <= it) {

@@ -102,13 +102,17 @@ int main(int argc, char *argv[])
   //time-domain antenna data, post-filtering and mixing
   typedef struct {
     Long_t i;
-    Double_t t, Ef, fW_t, nfW_t, sig, noise, vtot;
+    Double_t t, Ef;           //units s, fN.cm/C
+    Double_t fW_t, nfW_t;     //units fW 
+    Double_t sig, noise, vtot;//units V
   } ANTINFO;
   static ANTINFO anti;          //short 
   static ANTINFO wfi;           //with added time points, like real waveform
   //fft output (after fileter) 
   typedef struct {
-    Double_t Hz, outr, outi, fW_f, fJ_f, fJpHz;   //from fftw
+    Double_t Hz;                //units Hz
+    Double_t outr, outi;        //from fftw
+    Double_t fW_f, fJ_f, fJpHz;//units fW, fJ   
   } POWERCALC;
   static POWERCALC pc;          //short
   static POWERCALC npc;         //long time series with noise

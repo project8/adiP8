@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
     }
 
     if (parameter_file_found == 1) {
+      strcpy(parameter.filename, parameter_filename);
       init_status = 0;
 
       if (parameter.enable_epot == 1) {

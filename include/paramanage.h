@@ -175,6 +175,7 @@ struct t_parameter{
   int fft_on;
   double fft_resample_tstep;
   int fft_max_npts;
+  char filename[255];
 };
 
 extern struct t_parameter parameter;
