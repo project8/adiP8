@@ -77,7 +77,7 @@ void magfield(double z, double r, double *A, double *Bz, double *Br)
   char mag_filename[255];       // filename for magsource data
 
   strcpy(mag_filename, parameter.filename);
-  strcat(mag_filename, ".magsource"); // data input from file with extension .ini
+  strcat(mag_filename, ".magsource"); // data input from soucepoints file
 // Input from file magsource.dat:
   if (iff == 0) {
     fp = fopen(mag_filename, "r");

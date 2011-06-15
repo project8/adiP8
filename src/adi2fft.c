@@ -34,7 +34,7 @@ struct t_parameter parameter;
 
 //interpolated data at retarded time at the particle and calculated values
 typedef struct {
-  Long_t i;
+  Long64_t i;
   Double_t t_ant, t_ret, x, y, z, ycen, zcen, rad;
   Double_t vx, vy, vz;
   Double_t Ef, fW_t, phase, dphdt, omega;
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
   //time-domain antenna data similar to real data, with noise
   typedef struct {
-    Long_t i;
+    Long64_t i;
     Double_t t, Ef_for, Ef_bk, nEf;//units s, fN.cm/C
     Double_t fW_t, nfW_t;          //units fW
     Double_t sig, noise, vtot;     //units V
@@ -298,8 +298,8 @@ int main(int argc, char *argv[])
     double next_simT;
 
     //interpolated values 
-    Long_t itf = 0;
-    Long_t itb = 0;
+    Long64_t itf = 0;
+    Long64_t itb = 0;
     Double_t ta0 = abs(x_ant / c);    //time to reach antenna in either direction
     //inter_T is time at antenna minus constant offset (ta0), evenly spaced, evaluate power here
     Double_t inter_T = tstep;
@@ -548,9 +548,9 @@ int main(int argc, char *argv[])
     intBTree->Write();
     trackTree->Write();
     trackfile.close();
-    Long_t it = TMath::Min(itf, itb);     //max time points
-    Long_t max = TMath::Min(Long_t(N), it);  //max time points
-    Long_t maxf = floor(max / 2) + 1;        //max freq points
+    Long64_t it = TMath::Min(itf, itb);     //max time points
+    Long64_t max = TMath::Min(Long64_t(N), it);  //max time points
+    Long64_t maxf = floor(max / 2) + 1;        //max freq points
     inter_T = tstep;
     for (it = 0; it < max; it++) {
       //save tree at antenna with noise
@@ -778,7 +778,7 @@ int calculate_radiation(INTERINFO ii, double *in, double dir, double d_ant)
   omega = ii.omega;
   phase = ii.phase;
   atten = tl_data.att;
-  Long_t it = ii.i;
+  Long64_t it = ii.i;
   int status = 0;
   double efield[3];
   switch (parameter.rad_calc_mode) {

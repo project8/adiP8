@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
   TFile *tfin = new TFile(rootname, "read");
 
   TTree *runcard = (TTree *) tfin->Get("runcard");
-  Int_t nEvents = runcard->GetEntries();
+  Long64_t nEvents = runcard->GetEntries();
   Bool_t printDAT = kFALSE;
   Bool_t extendWF = kTRUE;
 
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
   TFile *tfout = new TFile(cardname + "_filtered.root", "recreate");
   //time-domain antenna data, post-filtering and mixing
   typedef struct {
-    Long_t i;
+    Long64_t i;
     Double_t t, Ef;           //units s, fN.cm/C
     Double_t fW_t, nfW_t;     //units fW 
     Double_t sig, noise, vtot;//units V
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
     TTree *fft_in = (TTree *) tfin->Get(Form("fft_%d", event));
     //noise already added
     //TTree *fft_in = (TTree*)tfin->Get(Form("nfft_%d",event));
-    Int_t nEntries = fft_in->GetEntries();
+    Long64_t nEntries = fft_in->GetEntries();
     cout << endl;
     cout << endl;
     cout << cardname << " open with " << nEntries << " freq. bins " << endl;
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
     nfftTree->Branch("npc", &npc, "Hz/D:noutr/D:nouti/D:nfW_f/D:nfJ_f/D:nfJpHz/D");
 
     //initialize backward fft, take N/2+1 freq. points, create N time points 
-    int N = 2 * (nEntries - 1); //max number of time points for this sim
+    Long64_t N = 2 * (nEntries - 1); //max number of time points for this sim
     double *out_td;
     fftw_complex *in;
     fftw_plan p;
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
     in = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * N);
 
     //iniitalize other arrays
-    int nF = 0;                 //nF=N/2+1
+    Long64_t nF = 0;                 //nF=N/2+1
     Double_t freq = 0, fMax = 0;
     Double_t LO = 26.9e9;       //Total Local oscillator, in Hz, minimum 24.5, max 26.4?
     Double_t SF = 6e8;          //Sampling Freq, in Hz, max is 2.5e9, bandwidth is SF/2, goal is 0.2 GHz
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
     }
     cout << "intial freq points " << nEntries << " and time points " << N << endl;
     cout << " filtered freq points: " << nF << " and time points 2*(nF-1) " << 2 * (nF - 1) << endl;
-    int max = TMath::Min(N, 2 * (nF - 1));
+    Long64_t max = TMath::Min(N, 2 * (nF - 1));
     //from freq. to time
     p = fftw_plan_dft_c2r_1d(max, in, out_td, FFTW_ESTIMATE);
     cout << "executing backward fft " << max << endl;
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     Double_t delt = 1 / 2.0 / fMax;     //in seconds, =1/SF
     double sig[max];
     double noise[max];
-    for (int j = 0; j < max; j++) {
+    for (Long64_t j = 0; j < max; j++) {
       out_td[j] = out_td[j] / 2 / (nEntries - 1);     //backward needs to be normalized
       anti.i = j;
       anti.t = (j + 1) * delt;

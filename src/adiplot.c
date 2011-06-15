@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
   TFile *tfin = new TFile(rootname, "read");
 
   TTree *runcard = (TTree *) tfin->Get("runcard");
-  Int_t nEvents = runcard->GetEntries();
+  Long64_t nEvents = runcard->GetEntries();
   tfin->Close();
 
   TFile *tfout = new TFile(cardname + "_extended.root", "update");
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
   for (Int_t event = 1; event <= nEvents; event++) {
 
     TTree *wf_1 = (TTree *) tfout->Get(Form("wf_%d", event));
-    Int_t nEntries = wf_1->GetEntries();
+    Long64_t nEntries = wf_1->GetEntries();
     cout << cardname << " open with " << nEntries << endl;
 
     //initialize values
