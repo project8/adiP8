@@ -1,6 +1,7 @@
 using namespace std;
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <cstdio>
 #include <iostream>
 #include "paramanage.h"
