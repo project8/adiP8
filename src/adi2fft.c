@@ -298,8 +298,8 @@ int main(int argc, char *argv[])
     double next_simT;
 
     //interpolated values 
-    long int itf = 0;
-    long int itb = 0;
+    Long_t itf = 0;
+    Long_t itb = 0;
     Double_t ta0 = abs(x_ant / c);    //time to reach antenna in either direction
     //inter_T is time at antenna minus constant offset (ta0), evenly spaced, evaluate power here
     Double_t inter_T = tstep;
@@ -549,8 +549,8 @@ int main(int argc, char *argv[])
     trackTree->Write();
     trackfile.close();
     Long_t it = TMath::Min(itf, itb);     //max time points
-    int max = TMath::Min(Long_t(N), it);  //max time points
-    int maxf = floor(max / 2) + 1;        //max freq points
+    Long_t max = TMath::Min(Long_t(N), it);  //max time points
+    Long_t maxf = floor(max / 2) + 1;        //max freq points
     inter_T = tstep;
     for (it = 0; it < max; it++) {
       //save tree at antenna with noise
@@ -778,7 +778,7 @@ int calculate_radiation(INTERINFO ii, double *in, double dir, double d_ant)
   omega = ii.omega;
   phase = ii.phase;
   atten = tl_data.att;
-  int it = ii.i;
+  Long_t it = ii.i;
   int status = 0;
   double efield[3];
   switch (parameter.rad_calc_mode) {
