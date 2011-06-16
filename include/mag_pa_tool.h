@@ -12,4 +12,6 @@ double get_magpot2D(double *position_cm);
 
 void get_bfield(double *position, double *bvec);
 
+void get_bfield_mag3(double *pos, double *bvec)
+
 

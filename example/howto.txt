@@ -1,7 +1,11 @@
 to run: (change initializations in example.ini and example.run)
 1a- if using magfield2 (in magfield2 directory, make, then):
-  magfield2 -m -0.005 -M 0.005 -d 0.000001 -t parabolic_coilparms.dat
-  (copy parabolic_magsource.dat to example.magsource in example dir)
+  mainmag -m -0.005 -M 0.005 -d 0.000001 -t parabolic_coilparms.dat
+  (copy parabolic_magsource.dat to example.mag2source in example dir)
+ 
+1b- if using magfield3, builds with all;
+  magsource example/example_mag3parms.dat
+  (creates example/example_mag3parms_* files)
  
 1- adipark example 
   (choose 1, q)

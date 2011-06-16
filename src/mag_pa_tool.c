@@ -10,6 +10,7 @@ using namespace std;
 #include "vector_tool.h"
 #include "math_tool.h"
 #include "bfield_ferenc.h"
+#include "magfield3.h"
 
 static int nx, ny, nz, sym;
 static int max_nx = 20000;      // xline length to read entire lines in pa's
@@ -311,7 +312,29 @@ void b_toroid(double *position, double *bvec)
   vector_times_scalar(xprod, b_0 * r_0 / radius_value, bvec);
 }
 
+void get_bfield_mag3(double *pos_ap, double *bvec_ap)
+{
+  //convert from cm to m, rotate x to z, use components 1-3
+  double pos_m3[4];
+  double bvec_m3[4];
+  char mag_filename[255];       // filename for magsource data
+  strcpy(mag_filename, parameter.filename);
+  strcat(mag_filename, "_mag3parms"); // data input from soucepoints file
+  magfield3_set_prefix(mag_filename);
 
+  pos_m3[1] = pos_ap[1]/100.0;
+  pos_m3[2] = pos_ap[2]/100.0;
+  pos_m3[3] = pos_ap[0]/100.0;//symmetry axis of coils
+
+  magfield3_field(pos_m3, bvec_m3);
+  // call magfield of Ferenc Glck with converted values
+
+  bvec_ap[1] = bvec_m3[1];
+  bvec_ap[2] = bvec_m3[2];
+  bvec_ap[0] = bvec_m3[3];//symmetry axis of coils
+  //cout << "AP Pos " << pos_ap[0] << " " << pos_ap[1] << " " << pos_ap[2] << endl << flush;
+  //cout << "AP BVec " << bvec_ap[0] << " " << bvec_ap[1] << " " << bvec_ap[2] << endl << flush;
+}
 void get_bfield(double *position, double *bvec)
 {
   switch (USE_MAG_PA) {
@@ -331,6 +354,9 @@ void get_bfield(double *position, double *bvec)
       break;
     case 5:
       get_bfield_poles(position, bvec);
+      break;
+    case 6:
+      get_bfield_mag3(position, bvec);
       break;
     default:
       printf("ERROR: In mag_pa_reader/get_bfield: PA use not set properly!\n");
