@@ -5,7 +5,7 @@ TARGETDIR := ./bin
 OBJDIR := ./tmp
 SRCDIR := ./src
 
-OBJECTS := radiation.o frequency.o paramanage.o mag_pa_tool.o fft_fitter.o bfield_ferenc.o magfield3.o array.o matrix_tool.o vector_tool.o math_tool.o sim_core.o sim_pilot.o el_pa_tool.o sim_help.o sim_scatter.o eH2.o
+OBJECTS := radiation.o paramanage.o mag_pa_tool.o fft_fitter.o bfield_ferenc.o magfield3.o array.o matrix_tool.o vector_tool.o math_tool.o sim_core.o sim_pilot.o el_pa_tool.o sim_help.o sim_scatter.o eH2.o
 TARGETS := adipark adi2fft adifilter adiplot magsource
 
 vpath %.o $(OBJDIR)

@@ -184,4 +184,4 @@ void init_parameters();
 
 int load_init_data(char* filename);
 
-int set_parameter(char* identifier, double value);
+int set_parameter(const char* identifier, double value);

@@ -159,7 +159,7 @@ void init_parameters(void)
 }
 
 /******************** store_parameter ***********************/
-int store_parameter(char *identifier, double value)
+int store_parameter(const char *identifier, double value)
 {
   int status;
   int number = 0;
@@ -456,7 +456,7 @@ int check_parameters()
 
 
 /******************** set_parameter ***********************/
-int set_parameter(char *identifier, double value)
+int set_parameter(const char *identifier, double value)
 {
   int status = store_parameter(identifier, value);
 

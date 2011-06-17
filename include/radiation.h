@@ -1,4 +1,3 @@
-#include "frequency.h"
 struct t_tl_data
 {
   double y1;//cm, y position of 1st wire or strip
@@ -36,4 +35,3 @@ void set_circ_wg_Zw(double k0);
 int get_circ_wg_efield(double phase, double *pos, double *efield);
 
 int get_circ_cavity_efield(double phase, double *pos, double *efield);
-double antenna_at_infinity(double phi,double x,double y,double z,double eperp,double epar,double b);

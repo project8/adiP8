@@ -1,21 +1,22 @@
 #include "radiation.h"
-#include "frequency.h"
 #include "paramanage.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include <stdio.h>
 
-// adi2fft performs a calculation of particle position vs. time, specifically in terms of the x,y,z of the guiding center and (epar, eperp, phase) of the orbit.
+// adi2fft performs a calculation of particle position vs. time, 
+//specifically in terms of the x,y,z of the guiding center plus
+//cyclotron radius and phase of the orbit.
 // This code is meant to translate that into an electric field.
 //and calculate the power transmitted in the + or - x-direction
 
 using namespace std;
 double eps = 8.85e-31;          //= e0 in C^2/fN/cm^2 
+double c = Clight * M2CM * 1e-6;	// in cm per us 
 
 //structures store geometry information
 struct t_tl_data tl_data;
-double c = Clight * M2CM * 1e-6;	// in cm per us 
 
 double coeff_of_t(double *efield, double *vel, int dir)
 {
@@ -107,7 +108,9 @@ void init_pp_data()
 
 int get_pp_efield(double *p, double *efield)
 {
-  //function returns the electric field between two infinite parallel plates 
+  //function returns the electric field between two parallel plates 
+  //amplitude corrected for capacitance of finite width strips
+  //not valid outside plates
   //efield normalized the jackson way with 1/cm units
   //strips extend in x- and z- directions, so the field is in the y-direction
   double e_amp = sqrt(1 / (tl_data.n * tl_data.l * (tl_data.y2 - tl_data.y1)));
@@ -164,9 +167,9 @@ int get_coax_efield(double *p, double *efield)
 
 void init_sq_wg_data(double k0)
 {
-//Square Waveguide, centered at origin
-  tl_data.y1 = 1.0;             //cm, y-dir, largest dim of wg, >wavelength/2 
-  tl_data.y2 = 0.3;             //cm, z-dir, smallest dim of wg, < wavelength/2
+  //Square Waveguide, WR-42, centered at origin
+  tl_data.y1 = 1.0668;             //cm, y-dir, largest dim of wg, >wavelength/2 
+  tl_data.y2 = 0.4318;             //cm, z-dir, smallest dim of wg, < wavelength/2
   //Warning!  Wave imp. for TE modes freq dep, not implemented properly
   //set impdence for TE modes in fN.cm.us/C^2
   //k0 = omega_cyclotron/c;
@@ -305,15 +308,3 @@ int get_circ_cavity_efield(double phase, double *pos, double *efield)
   return status;
 }
 
-double antenna_at_infinity(double phase, double x, double y, double z, double eperp, double epar, double b)
-{
-// The electric field strength at a given distance should be a bunch of angle/position/distance-dependent prefactors (the power) times cos(theta) (the phase factor) and maybe also times the antenna area.   The subroutine antenna_at_infinity returns that prefactor for an antenna located at (0,0,zdet).  
-//no longer maintained (-MLL)
-  const double zdet = 0.5;
-  const double me2 = 510998.0;  //electron mass in eV
-  double pitchangle = acos(eperp / (sqrt(eperp * eperp + epar * epar)));
-  double d2_to_det = x * x + y * y + pow(z - zdet, 2);
-  double cangle_to_det = x / sqrt(d2_to_det);
-  double gamma2 = (eperp * eperp + epar * epar + me2) / me2;
-  return dpdd2(b, sqrt(1 - 1 / gamma2), pitchangle, cangle_to_det) / d2_to_det;
-}

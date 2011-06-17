@@ -11,7 +11,7 @@ using namespace std;
 
 void fit_fft_to_gaussian(double *pars, double *f, double *out, int N)
 {
-  //fit to lorentian, appropriate for non-rectangular windowing
+  //fit to gaussian, appropriate for non-rectangular windowing
   //find max (initial guess at Gaussian center)
   int imax = 0;
   double omax = -1;

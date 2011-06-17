@@ -252,7 +252,7 @@ double get_para_energy_loss(struct particle_data *particle)
 
 
 /******************** include_energy_loss ***********************/
-void include_energy_loss(struct particle_data *particle, int *e_tag)
+void include_energy_loss(struct particle_data *particle)
 {                               // this function gathers and includes all calculated energy losses to current particle
 
   get_perp_energy_loss(particle);  // syncro loss now in particle structure 
@@ -390,7 +390,7 @@ void turn_direction(struct particle_data *particle)
 }
 
 /******************** test_electrode ***********************/
-int test_electrode(struct particle_data *particle, struct particle_data *probe)
+int test_electrode(struct particle_data *probe)
 {
   double radius;
   double testvec[3];
@@ -849,7 +849,7 @@ void single_track(FILE * f_fly, struct particle_data *particle)
 
   printf("Calculating energies \n");
   calc_energies(particle, &e_tag);  // energies for the first time
-  // include_energy_loss(particle,&e_tag); // gather and include energy losses
+  // include_energy_loss(particle); // gather and include energy losses
   check_mirror(particle, &e_tag);
   check_total_energy(particle, &e_tag);
 
@@ -870,7 +870,7 @@ void single_track(FILE * f_fly, struct particle_data *particle)
     e_tag = 0;                  // reset e_tag
 
     calc_energies(&probe, &e_tag);  // recalculate energies
-    include_energy_loss(&probe, &e_tag);  // gather and include energy losses
+    include_energy_loss(&probe);  // gather and include energy losses
     check_mirror(&probe, &e_tag);
     check_total_energy(&probe, &e_tag);
 
@@ -888,7 +888,7 @@ void single_track(FILE * f_fly, struct particle_data *particle)
           sim_help_force_save_data();  // force data to be saved
         }
 
-        e_tag = test_electrode(particle, &probe);  // test collision with electrode
+        e_tag = test_electrode(&probe);  // test collision with electrode
         if (test_drift(&probe) != 0) {
           e_tag = e_tag + 10 * test_drift(&probe);
         }
@@ -975,7 +975,7 @@ int single_track_trap(struct particle_data *particle)
     e_tag = 0;                  // reset e_tag
 
     calc_energies(&probe, &e_tag);  // recalculate energies
-    include_energy_loss(&probe, &e_tag);
+    include_energy_loss(&probe);
     check_mirror(&probe, &e_tag);
     check_total_energy(&probe, &e_tag);
 
@@ -992,7 +992,7 @@ int single_track_trap(struct particle_data *particle)
           loop_counter = 0;
         }
 
-        e_tag = test_electrode(particle, &probe);
+        e_tag = test_electrode(&probe);
         // test collision with electrode
 
         if (test_drift(&probe) != 0) {
