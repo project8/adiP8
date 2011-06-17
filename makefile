@@ -1,4 +1,4 @@
-CFLAGS := $(CFLAGS) -g -Wall -Wextra
+CFLAGS := $(CFLAGS) -g -Wall -Wextra -Werror
 INCDIRS := -I/usr/include -I$(ROOTSYS)/include -I./include
 
 TARGETDIR := ./bin

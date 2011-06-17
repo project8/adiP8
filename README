@@ -7,5 +7,18 @@ make
 * the configure shell script is NOT a standard "configure" in that it does not create/modify a makefile.
 It also does NOT check for dependencies. All it currently does is ensure the existence of the ./bin and ./tmp directories.
 
+System Requirements:
+At this point we have made no attempt to determine exact system requirements or dependency versions. Instead we list what is hopefully sufficient detail of those systems which we are using for development. If you experience problems try moving your packages closer to these versions:
+
+Ben LaRoque (personal laptop)
+    OS:
+      Linux adent 2.6.38-8-generic #42-Ubuntu SMP Mon Apr 11 03:31:50 UTC 2011 i686 i686 i386 GNU/Linux
+    GCC:
+      gcc (Ubuntu/Linaro 4.5.2-8ubuntu4) 4.5.2
+    FFTW:
+      FFTW-3.2.2
+    ROOT:
+      ROOT 5.31/01 (trunk@39580, Jun 07 2011, 16:04:34 on linux)
+
 Wishlist:
 ~Produce a "proper" configure script to check for dependencies, create directories, and setup the makefile with your compiler.
