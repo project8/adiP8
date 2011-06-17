@@ -335,6 +335,7 @@ void get_bfield_mag3(double *pos_ap, double *bvec_ap)
   //cout << "AP Pos " << pos_ap[0] << " " << pos_ap[1] << " " << pos_ap[2] << endl << flush;
   //cout << "AP BVec " << bvec_ap[0] << " " << bvec_ap[1] << " " << bvec_ap[2] << endl << flush;
 }
+
 void get_bfield(double *position, double *bvec)
 {
   switch (USE_MAG_PA) {
