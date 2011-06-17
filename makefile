@@ -1,4 +1,4 @@
-CXXFLAGS := $(CXXFLAGS) -g
+CFLAGS := $(CFLAGS) -g -Wall -Wextra
 INCDIRS := -I/usr/include -I$(ROOTSYS)/include -I./include
 
 TARGETDIR := ./bin
@@ -23,13 +23,13 @@ LIBS_WDIR = $(patsubst %,$(OBJDIR)/%,$(LIBS))
 all: $(OBJECTS_WDIR) $(TARGETS_WDIR)
 
 $(OBJECTS_WDIR) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
-	$(CXX) $(CXXFLAGS) $(INCDIRS) -c $< -o $@
+	$(CXX) $(CFLAGS) $(INCDIRS) -c $< -o $@
 
 $(TARGETOBJECTS_WDIR) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
-	$(CXX) $(CXXFLAGS) $(INCDIRS) -c $< -o $@
+	$(CXX) $(CFLAGS) $(INCDIRS) -c $< -o $@
 
 $(TARGETS_WDIR) : $(TARGETDIR)/% : $(OBJDIR)/%.o $(OBJECTS_WDIR) $(LIBS_WDIR)
-	$(CXX) $(CXXFLAGS) $< $(OBJECTS_WDIR) $(LIBS_WDIR) $(LINKEDLIBS) -o $@
+	$(CXX) $(CFLAGS) $< $(OBJECTS_WDIR) $(LIBS_WDIR) $(LINKEDLIBS) -o $@
 
 .PHONY: clean
 
