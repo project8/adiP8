@@ -23,19 +23,23 @@
 #define PARA_ENERGY_LOSS parameter.para_e_loss
 #define PERP_ENERGY_LOSS parameter.perp_e_loss
 
-#define Clight 299792458.0   // PDG 07
+#define Clight 299792458.0   // PDG 07 m/s
 #define M0Clight2 510998.91  // PDG 07
-//#define M0Clight2 510999.06  // PDG 98
 #define MM2CM 0.1            // scale mm value to cm value
 #define M2CM 100.            // scale m value to cm value
 #define CM2MM 10.            // scale cm value to mm value
+#define US2S 1.e-6            // scale us value to s value
+#define S2US 1.e+6            // scale s value to us value
 #define TESLA2GAUSS 10000.   // scale tesla to gauss
 #define Echarge 1.602176487e-19    // charge of single electron in C, pdg 07
-//#define Echarge 1.60217646e-19    // charge of single electron in C
 #define erg2eV  6.24150974e+11    // converts CGS unit "erg" to "eV"
 #define SI2esE  3e9          // converts SI units to CGS unit "esE"
 #define OMEGA0 1.758820150e+11 // nrel electron cyclotron frequency (rad/s) at B=1t,pdg 07
-//#define OMEGA0 1.758626459e+11 // nrel electron cyclotron frequency (rad/s) at B=1t
+#define EPS0 8.854187817e-12  //permittivity of free space pdg 10, in F/m
+#define Z0 376.7           //Impedance of free space in Ohms
+#define CU_R 2.15e-9           //Resititivy of Cu @ 80K in Ohm-m 
+#define RM 0.015             //Resititivy of Cu / skin depth @ OMEGA0, Ohms
+#define K_BOL 1.3806488e-23     //Boltzam constant, J/K
 
 #define display 0           // output switch mode: 0=nothing, 1=some, 2=all 
 

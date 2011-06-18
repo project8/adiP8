@@ -64,6 +64,8 @@ void fit_fft_to_gaussian(double *pars, double *f, double *out, int N)
 
 void fit_fft_to_lorentian(double *pars, double *f, double *pow, int N, int j)
 {
+  cout << "****************************************************** " << endl;
+  cout << "Fitting Power Spectrum P(f) to Lorentzian Function: " << endl;
   //fit to lorentian, appropriate for non-rectangular windowing
   //find max (initial guess at mean freq)
   int imax = 0;
@@ -118,6 +120,7 @@ void fit_fft_to_lorentian(double *pars, double *f, double *pow, int N, int j)
   cout << "Lorentzian function integral : " << integral << " fJ " << endl;
   cout << "Lorentzian time : " << 1 / f[1] << " s " << endl;
   cout << "Lorentzian function time average power: " << integral * f[1] << " fW " << endl;
+  cout << "****************************************************** " << endl;
   //make sure integral and frequency have same units.
   //OK, great, let's try to return the fit parameters
   pars[0] = lor->GetParameter(0);
@@ -133,21 +136,16 @@ void fit_fft_to_lorentian(double *pars, double *f, double *pow, int N, int j)
 
 }
 
-void fit_fft_to_sinc(double *pars, double *f, double *pow, int N, int j)
+void fit_fft_to_sinc(double *pars, double *f, double *pow, double f0, int j)
 {
-  cout << "******************************************* " << endl;
+  cout << "****************************************************** " << endl;
   cout << "Fitting Power Spectrum P(f) to Sinc2(f) Function: " << endl;
   //appropriate for rectangular windowing
   //find max (initial guess at mean freq)
   int imax = 0;
-  double omax = -1;
-  for (int i = 1; i < N; i++) {
-    if (pow[i] > omax) {
-      omax = pow[i];
-      imax = i;
-    }
-  }
-  cout << "Peak found at freq: " << f[imax] << endl;
+  double delf = f[1];
+  imax = f0/delf; 
+  cout << "Peak found at freq: " << f0 << endl;
   //to do the fit we will generate a TGraph and fit that
   //OK, let's generate a pointer to a subarray of OUT
   const int nP = 18;
@@ -160,15 +158,15 @@ void fit_fft_to_sinc(double *pars, double *f, double *pow, int N, int j)
   }
 
   //  cout << iwid << " " << subout[0] << " " << subout[3*iwid] << endl;
-  cout << "Nsamples " << N << endl;
+  //cout << "Nsamples " << N << endl;
 
   TGraphErrors *data = new TGraphErrors(nP, subx, subout, 0, erY);
   data->SetName(Form("sincFit%i", j));
 
   //for large sampling rate
   TF1 *sinc = new TF1("sinc", "[2]*TMath::Sin(2*TMath::Pi()*(x-[0])*[1]/2)^2/(2*TMath::Pi()*(x-[0])*[1]/2)^2", subx[0], subx[nP - 1]);
-  sinc->SetParameters(f[imax], 1 / f[1], pow[imax]);
-  cout << "Initializing to mean: " << f[imax] << " duration: " << 1 / f[1] << " amp: " << pow[imax] << endl;
+  sinc->SetParameters(f0, 1 / f[1], pow[imax]);
+  //cout << "Initializing to mean: " << f[imax] << " duration: " << 1 / f[1] << " amp: " << pow[imax] << endl;
   sinc->SetParLimits(0, subx[0], subx[nP - 1]);
   sinc->SetParLimits(1, 0, 1000 / f[1]);
   sinc->SetParNames("mean", "duration", "amplitude");
@@ -182,8 +180,6 @@ void fit_fft_to_sinc(double *pars, double *f, double *pow, int N, int j)
   }
   //data->Draw("Ap");
   double integral = sinc->Integral(subx[0], subx[nP - 1]);
-  cout << "Sinc function integral : " << integral << " fW " << endl;
-  cout << "Sinc duration: " << 1 / f[1] << " s " << endl;
   //make sure integral and frequency have same units.
 
   //OK, great, let's try to return the fit parameters
@@ -195,10 +191,12 @@ void fit_fft_to_sinc(double *pars, double *f, double *pow, int N, int j)
   pars[5] = sinc->GetParError(1);
   pars[6] = sinc->GetParError(2);
   pars[7] = status;
+  cout << "Sinc duration: " << pars[1] << " s " << endl;
+  cout << "Sinc function TA power : " << integral << " fW " << endl;
 
   data->Write();
   //sinc->Write();
-  cout << "******************************************* " << endl;
+  cout << "****************************************************** " << endl;
 }
 
 void fit_fft_to_sinc_2nd(double *pars, double *f, double *pow, int N, int j)
@@ -268,29 +266,23 @@ void fit_fft_to_sinc_2nd(double *pars, double *f, double *pow, int N, int j)
   data->Write();
 }
 
-void fit_pow_to_cos(double *pars, double *t, double *pow_t, double *f, double *pow, int N, int j)
+void fit_pow_to_cos(double *pars, double *t, double *pow_t, double f0, int N, int j)
 {
-  cout << "******************************************* " << endl;
+  cout << "****************************************************** " << endl;
   cout << "Fitting Instantaneous Power P(t) to cos2(t)" << endl;
   //appropriate for single harmonic
-  //find max in ps (initial guess at freq)
-  //and find max in p(t) (initial guess at amp)
+  //find max in p(t) (initial guess at amp)
+  double duration = t[0]*N;
   int imax_t = 0;
   double omax_t = -1;
-  int imax = 0;
-  double omax = -1;
-  for (int i = 0; i < N / 2; i++) {
+  int nP = 50;
+  for (int i = 0; i < nP; i++) {
     if (pow_t[i] > omax_t) {
       omax_t = pow_t[i];
       imax_t = i;
     }
-    if (pow[i] > omax) {
-      omax = pow[i];
-      imax = i;
-    }
   }
   //create error bars
-  int nP = 50;
   double erY[nP];
   for (int i = 0; i < nP; i++) {
     erY[i] = pow_t[imax_t] * .01;
@@ -301,17 +293,17 @@ void fit_pow_to_cos(double *pars, double *t, double *pow_t, double *f, double *p
 
 
   TF1 *cos = new TF1("cosine", "[2]*TMath::Cos(2*TMath::Pi()*x*[0]+[1])^2", t[0], t[nP - 1]);
-  cos->SetParameters(f[imax], 0, pow_t[imax_t]);
+  cos->SetParameters(f0, 0, pow_t[imax_t]);
   cos->SetParNames("frequency", "offset", "amplitude");
   cos->SetLineColor(2);
   cos->SetNpx(1000);
   gStyle->SetOptFit(1111);
   int status = data->Fit(cos, "q", "", t[0], t[nP - 1]);
   //data->Draw("Ap");
-  double integral = cos->Integral(t[0], t[N - 1]);
-  double ta_power = integral / t[N - 1];
+  double integral = cos->Integral(t[0], duration );
+  double ta_power = integral / duration;
   cout << "cos function integral : " << integral << " fJ " << endl;
-  cout << "cos function duration : " << t[N - 1] << " s " << endl;
+  cout << "cos function duration : " << duration << " s " << endl;
   cout << "cos function time average power: " << integral / t[N - 1] << " fW " << endl;
   //make sure integral and time have same units.
 
@@ -325,7 +317,7 @@ void fit_pow_to_cos(double *pars, double *t, double *pow_t, double *f, double *p
   pars[7] = status;
 
   data->Write();
-  cout << "******************************************* " << endl;
+  cout << "****************************************************** " << endl;
 }
 
 void add_noise(double *f, double *pow, int N, int j)

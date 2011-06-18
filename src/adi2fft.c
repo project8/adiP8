@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
      backward waves
  3- adds waves together if reflected from end of antenna 
  4- fourier transform signal at antenna
+  values come in cm, us from adipark, but attempting to use SI units here.
 */
 
   TApplication theApp("App", &argc, argv);
@@ -58,7 +59,7 @@ int main(int argc, char *argv[])
   //data from adipark tracking, no interpolation
   typedef struct {
     Double_t t, xcen, ycen, zcen, rad;    //units us, cm
-    Double_t vx, vy, vz;                  //units cm/us 
+    Double_t vx, vy, vz;                  //units m/s 
     Double_t ekin, eloss, b, phase, omega;//units eV, T, rad/us
   } TRACKINFO;
   static TRACKINFO ti;
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
   //time-domain antenna data similar to real data, with noise
   typedef struct {
     Long64_t i;
-    Double_t t, Ef_for, Ef_bk, nEf;//units s, fN.cm/C
+    Double_t t, Ef_for, Ef_bk, nEf;//units s,volts 
     Double_t fW_t, nfW_t;          //units fW
     Double_t sig, noise, vtot;     //units V
   } ANTINFO;
@@ -138,7 +139,7 @@ int main(int argc, char *argv[])
   //set root's global rand gen to Mersene Twister
   TRandom3 *r3 = new TRandom3(0);
   gRandom = r3;
-  double kT = (parameter.antenna_temp) * 1.38e-8;    //fJ, T=35K, amplifier Teff = 25 K
+  double kT = (parameter.antenna_temp) * K_BOL;    //J, T=35K, amplifier Teff = 25 K
 
   TNtuple *runcard = new TNtuple("runcard", "run parameters", "i:repeat:xi:yi:zi:ekin:thetai:phii:mass:charge:phasei:nscatters:n_temp:imp:x_ant:t_del:atten:mean:duration:height:ta_pow:emean:eduration:eheight:status");
   float ntarray[25];
@@ -151,12 +152,12 @@ int main(int argc, char *argv[])
     transform = kTRUE;
   }
   double tstep = parameter.fft_resample_tstep;   //in us
-  double tmax = parameter.max_tof_in_sec * 1e6;
-  //set up for radiation calculation
-  Bool_t addNoise = kFALSE;
+  double tmax = parameter.max_tof_in_sec * S2US;
+  Bool_t transNoise = kFALSE;
   if (parameter.antenna_temp > 0) {
-    addNoise = kTRUE;
+    transNoise = kTRUE;
   }
+  //set up for radiation calculation
   double x_ant = parameter.antenna_pos;
   int dir = copysign(1.0, x_ant);
   Bool_t shift = kFALSE;
@@ -168,18 +169,17 @@ int main(int argc, char *argv[])
   if (std::isinf(impedance)) {
     refCo = 1;
   }
-  double omega0 = 27.05e3 * 2 * M_PI;    //radians/us 
   init_data();                  //set tl geometry in radiation.c 
   switch (parameter.rad_calc_mode) {
     case 2:                      //parallel wires
       init_tl_data(kFALSE);
       break;
     case 3:                      //square wg
-      init_sq_wg_data(omega0 / c);
+      init_sq_wg_data(OMEGA0 / Clight / M2CM);
       //Warning!  Wave imp. for TE modes freq dep, not implemented properly
       break;
     case 4:                      //circular wg
-      init_circ_wg_data(omega0 / c);
+      init_circ_wg_data(OMEGA0 / Clight / M2CM);
       //Warning!  Wave imp. for TE modes freq dep, not implemented properly
       break;
     case 5:                      //parallel plates/strips
@@ -192,25 +192,14 @@ int main(int argc, char *argv[])
       init_tl_data(kTRUE);
       break;
   }
-  //cout << "Reflection Coefficient " << refCo << endl;
-  double atten = 0;
-  double attenR = tl_data.R / tl_data.Zc / 1.0e-23 / 2;
-  double tand = 0.0012;         //Rogers Duroid
-  double attenG = tl_data.C * tl_data.Zc * omega0 * tand / 2;
-  if (parameter.rad_atten == 1) {
-    atten = attenR + attenG;
+  double EF2SIG = sqrt(tl_data.Zc/tl_data.Zw);
+  double SIG2EF = sqrt(tl_data.Zw/tl_data.Zc);
+  if (parameter.rad_atten == 0) {
+    tl_data.att = 0;
   }
-  tl_data.att = atten;
-  cout << " Resistive atten coeff: " << attenR << endl;
-  cout << " Conductive atten coeff: " << attenG << endl;
-  cout << " Forward wave attenuation: " << exp(-atten * abs(x_ant)) << endl;
-  if (!refCo == 0) {
-    cout << " Reflected wave attenuation: " << exp(-atten * abs(3 * x_ant)) << endl;
-  }
-  cout << "ready to run" << endl;
   //1- file reads in tracking information, loop over tracked points, 
   while (runfile >> repeat >> xi >> yi >> zi >> ekin >> thetai >> phii >> mass >> charge >> phasei) {
-    cout << "running  " << i << endl;
+    cout << endl << endl << "interpolating for particle " << i << endl;
     //for each line of runfile we expect a track file 
     TString trackname = cardname + TString(".track");
     trackname += i;
@@ -237,23 +226,15 @@ int main(int argc, char *argv[])
     in_for = (double *) fftw_malloc(sizeof(double) * N);
     in_bk = (double *) fftw_malloc(sizeof(double) * N);
     out = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * N);
-    if (addNoise) {
-      in_n = (double *) fftw_malloc(sizeof(double) * N);
-    }
-    if (addNoise) {
-      out_n = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * N);
-    }
     double *energyf, *powerf, *ESD, *nenergyf, *npowerf, *nESD;
     energyf = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
     powerf = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
     ESD = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
-    if (addNoise) {
+    if (transNoise) {
+      in_n = (double *) fftw_malloc(sizeof(double) * N);
+      out_n = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * N);
       nenergyf = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
-    }
-    if (addNoise) {
       npowerf = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
-    }
-    if (addNoise) {
       nESD = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
     }
 
@@ -300,14 +281,14 @@ int main(int argc, char *argv[])
     //interpolated values 
     Long64_t itf = 0;
     Long64_t itb = 0;
-    Double_t ta0 = abs(x_ant / c);    //time to reach antenna in either direction
+    Double_t ta0 = abs(x_ant / tl_data.vg);    //time to reach antenna in either direction
     //inter_T is time at antenna minus constant offset (ta0), evenly spaced, evaluate power here
     Double_t inter_T = tstep;
     //for_T is retarted time (at time of emission at the particle) for wave in +dir,evaluate pos/vel here
     Double_t for_T = inter_T;
     //for_T = t_ant + dir*x(t_r)/c, appx and num eval x(t_r) for initial value
     if (shift == 1) {
-      for_T = inter_T + dir * (last_simX[0] + 1e-4 * last_simV[0] * (inter_T - last_simT)) / c;
+      for_T = inter_T + dir * (last_simX[0] + 1.e-4 * last_simV[0] * (inter_T - last_simT)) / tl_data.vg;
     }
     //bk_T is retarted time (emission tim at particle) for backward or reflected wave
     //if reflected, will add delay of n_del to antenna
@@ -321,7 +302,7 @@ int main(int argc, char *argv[])
     Double_t bk_T = inter_T - t_del;
     //bk_T = t_ant -2*ta0 - dir*x(t_r)/c, appx and num eval x(t_r) for initial value
     if (shift == 1) {
-      bk_T = inter_T - t_del - dir * (last_simX[0] + 1e-4 * last_simV[0] * (inter_T - last_simT)) / c;
+      bk_T = inter_T - t_del - dir * (last_simX[0] + 1.e-4 * last_simV[0] * (inter_T - last_simT)) / tl_data.vg;
     }
     double inter_R, drdt;
     double inter_Phase, dphdt;
@@ -349,14 +330,14 @@ int main(int argc, char *argv[])
       for (int j = 0; j < 3; j++) {
         dvdt[j] = (next_simV[j] - last_simV[j]) / (next_simT - last_simT);
       }
-      if (for_T < last_simT) {
+      /*if (for_T < last_simT) {
         cout << "Problem!! for_T < last_simT" << " for " << itf;
         cout << " for_T= " << for_T << " last_simT " << last_simT << endl;
       }
       if (bk_T < last_simT) {
         cout << "Problem!! bk_T < last_simT" << " for " << itb;
         cout << " bk_T= " << bk_T << " last_simT " << last_simT << endl;
-      }
+      }*/
       while ((for_T < simT)) {  //interpolate between simulated steps
         inter_T = (itf + 1) * tstep;
         //2- interpolates btw track times to get points evenly spaced in time at the antenna 
@@ -373,7 +354,7 @@ int main(int argc, char *argv[])
           inter_V[j] = last_simV[j] + dvdt[j] * (for_T - last_simT);
         }
         if (abs(inter_X[0]) > abs(x_ant)) {
-          cout << "Warning! Passed Antenna! Exiting Now!" << endl;     //passed antenna
+          cout << "Warning! Passed Antenna! Exiting Interpolation Now!" << endl;     //passed antenna
           status = 1;
           break;                //passed antenna
         }
@@ -387,21 +368,21 @@ int main(int argc, char *argv[])
         fi.ycen = inter_X[1];
         fi.zcen = inter_X[2];
         fi.rad = inter_R;
-        fi.vx = inter_V[0] * 1e-4;     //cm/us
-        fi.vy = inter_V[1] * 1e-4 - inter_R * inter_Om * sin(inter_Phase);
-        fi.vz = inter_V[2] * 1e-4 + inter_R * inter_Om * cos(inter_Phase);
+        fi.vx = inter_V[0] * 1.e-4;     //cm/us
+        fi.vy = inter_V[1] * 1.e-4 - inter_R * inter_Om * sin(inter_Phase);
+        fi.vz = inter_V[2] * 1.e-4 + inter_R * inter_Om * cos(inter_Phase);
         fi.phase = inter_Phase;
         fi.dphdt = dphdt;       //at inter_T
         fi.omega = inter_Om;    //at for_T
         status = calculate_radiation(fi, in_for, dir, x_ant);
-        fi.Ef = in_for[itf];    //coeff of efield, fN.cm/C
-        fi.fW_t = 1e4 / tl_data.Zw * (pow(in_for[itf], 2));  //should have units of fW 
+        fi.Ef = in_for[itf];    //coeff of efield, C*Ohm/s
+        fi.fW_t = 1.e+15 / tl_data.Zw * (pow(in_for[itf], 2));  //should have units of fW 
         intFTree->Fill();
         itf++;
         inter_T = (itf + 1) * tstep;
         for_T = inter_T;
         if (shift == 1) {
-          for_T = inter_T + dir * inter_X[0] / c;
+          for_T = inter_T + dir * inter_X[0] / tl_data.vg;
         }
         if (itf >= N) {
           break;
@@ -428,7 +409,7 @@ int main(int argc, char *argv[])
           inter_V[j] = last_simV[j] + dvdt[j] * (bk_T - last_simT);
         }
         if (abs(inter_X[0]) > abs(x_ant)) {
-          cout << "Warning! Passed Antenna! Exiting Now!" << endl;      //passed antenna
+          cout << "Warning! Passed Antenna! Exiting Interpolation Now!" << endl;      //passed antenna
           status = 1;
           break;                //passed antenna
         }
@@ -442,26 +423,26 @@ int main(int argc, char *argv[])
         bi.ycen = inter_X[1];
         bi.zcen = inter_X[2];
         bi.rad = inter_R;
-        bi.vx = inter_V[0] * 1e-4;    //cm/us
-        bi.vy = inter_V[1] * 1e-4 - inter_R * inter_Om * sin(inter_Phase);
-        bi.vz = inter_V[2] * 1e-4 + inter_R * inter_Om * cos(inter_Phase);
+        bi.vx = inter_V[0] * 1.e-4;    //cm/us
+        bi.vy = inter_V[1] * 1.e-4 - inter_R * inter_Om * sin(inter_Phase);
+        bi.vz = inter_V[2] * 1.e-4 + inter_R * inter_Om * cos(inter_Phase);
         bi.phase = inter_Phase;
         bi.dphdt = dphdt;       //at inter_T
         bi.omega = inter_Om;    //at for_T
-        //bi.omega = inter_Om/(1+dir*inter_V[0]*1e-4/c); 
+        //bi.omega = inter_Om/(1+dir*inter_V[0]*1.e-4/c); 
         if (refCo == 0) {
           status = calculate_radiation(bi, in_bk, -dir, x_ant);
         } else {
           status = calculate_radiation(bi, in_bk, -dir, 3 * x_ant);
         }
-        bi.Ef = in_bk[itb];     //coeff of efield, fN.cm/C
-        bi.fW_t = 1e4 / tl_data.Zw * (pow(in_bk[itb], 2));    //should have units of fW 
+        bi.Ef = in_bk[itb];     //coeff of efield,volts 
+        bi.fW_t = 1.e+15 / tl_data.Zw * (pow(in_bk[itb], 2));    //should have units of fW 
         intBTree->Fill();
         itb++;
         inter_T = (itb + 1) * tstep;
         bk_T = inter_T - t_del;
         if (shift == 1) {
-          bk_T = inter_T - t_del - dir * inter_X[0] / c;
+          bk_T = inter_T - t_del - dir * inter_X[0] / tl_data.vg;
         }
         if (itb >= N) {
           break;
@@ -540,10 +521,10 @@ int main(int argc, char *argv[])
       scatt = next_scatt;
       wq = next_wq;
     }
-    if (minStep < tstep) {      //if real time step is smaller than interpolated time step
+    /*if (minStep < tstep) {      //if real time step is smaller than interpolated time step
       cout << "Warning!  simulated time step smaller than interpolated time step! ";
       cout << "minStep = " << minStep << " at it = " << minIt << endl;
-    }
+    }*/
     intFTree->Write();
     intBTree->Write();
     trackTree->Write();
@@ -555,29 +536,26 @@ int main(int argc, char *argv[])
     for (it = 0; it < max; it++) {
       //save tree at antenna with noise
       anti.i = it;
-      anti.t = inter_T*1e-6;//convert to seconds
-      anti.Ef_for = in_for[it]; //coeff of efield, fN.cm/C
+      anti.t = inter_T*US2S;//convert to seconds
+      anti.Ef_for = in_for[it]; //coeff of efield, volts
       anti.Ef_bk = 0;
       if (n_del <= it) {
-        anti.Ef_bk = refCo * in_bk[it - n_del];  //coeff of efield, fN.cm/C
+        anti.Ef_bk = refCo * in_bk[it - n_del];  //coeff of efield, volts
       }
       //use characteristic impedance to get voltage at antenna
-      anti.sig = sqrt(tl_data.Zc / tl_data.Zw) * 1e-17 * in_for[it];     //in Volts
+      anti.sig = EF2SIG * in_for[it];     //in Volts
       if ((!(impedance == 1)) && it >= n_del) {
-        anti.sig += sqrt(tl_data.Zc / tl_data.Zw) * 1e-17 * refCo * in_bk[it - n_del];     //in Volts
+        anti.sig += EF2SIG * refCo * in_bk[it - n_del];     
         in_for[it] += refCo * in_bk[it - n_del];
       }
-      anti.noise = r3->Gaus(0, TMath::Sqrt(kT / 2 / tstep * 1e6 * tl_data.Zc) * 1e-19);    //in Volts 
+      anti.noise = r3->Gaus(0, TMath::Sqrt(kT / 2 / tstep / US2S * tl_data.Zc) );    //in Volts 
       anti.vtot = anti.sig + anti.noise;  //volts
-      anti.nEf = sqrt(tl_data.Zw / tl_data.Zc) * 1e+17 * anti.sig;       //fN.cm/C
-      if (addNoise) {
-        anti.nEf = sqrt(tl_data.Zw / tl_data.Zc) * 1e+17 * anti.vtot;    //fN.cm/C
-      }
-      if (addNoise) {
+      anti.nEf = SIG2EF * anti.vtot;    //Volts
+      if (transNoise) {
         in_n[it] = anti.nEf;
       }
-      anti.fW_t = pow(anti.sig, 2) / tl_data.Zc * 1e+38;     //units of fW 
-      anti.nfW_t = pow(anti.vtot, 2) / tl_data.Zc * 1e+38;   //units of fW 
+      anti.fW_t = pow(anti.sig, 2) / tl_data.Zc * 1.e+15;     //units of fW 
+      anti.nfW_t = pow(anti.vtot, 2) / tl_data.Zc * 1.e+15;   //units of fW 
       wfTree->Fill();
       //finished with antenna data
       inter_T = (it + 2) * tstep;
@@ -585,24 +563,23 @@ int main(int argc, char *argv[])
     wfTree->Write();
     //3- fourier transform signal at antenna, in_for[] is electric field amplitude
     if (transform) {
-      cout << "done making time series at iline " << iline << " t=" << inter_T << endl;
+      cout << "done making time series at trackfile line " << iline << " t=" << inter_T << endl;
       p = fftw_plan_dft_r2c_1d(max, in_for, out, FFTW_ESTIMATE);
-      cout << "executing " << i << " " << max << endl;
+      cout << "executing fft for particle " << i << " with points " << max << endl;
       fftw_execute(p);
       cout << "done fft" << i << endl;
-      cout << "max (time points) " << max << " max/2+1 (freq points) " << maxf << endl;
-      /*cout << "zero freq: " << out[0][0] << " " << out[0][1] << " should be real" << endl; 
+      /* cout << "max (time points) " << max << " max/2+1 (freq points) " << maxf << endl;
+         cout << "zero freq: " << out[0][0] << " " << out[0][1] << " should be real" << endl; 
          cout << "nyquist freq -1: " << out[maxf-2][0] << " " << out[maxf-2][1] << endl; 
          cout << "nyquist freq: " << out[maxf-1][0] << " " << out[maxf-1][1] << " should be real if max is even" << endl;
          cout << "nyquist freq +1: " << out[maxf][0] << " " << out[maxf][1] << " should be zero" << endl; 
        */
-      if (addNoise) {
-        cout << "executing with noise " << i << " " << max << endl;
+      if (transNoise) {
+        cout << "executing fft with noise " << i << " with points " << max << endl;
         p = fftw_plan_dft_r2c_1d(max, in_n, out_n, FFTW_ESTIMATE);
         fftw_execute(p);
       }
 
-      cout << "prepare ntuple " << i << " " << N << " " << it << endl;
       TTree *fftTree = new TTree(Form("fft_%d", i), "fft results");
       fftTree->Branch("pc", &pc, "Hz/D:outr/D:outi/D:fW_f/D:fJ_f/D:fJpHz/D");
       TTree *nfftTree = new TTree(Form("nfft_%d", i), "fft results with noise");
@@ -612,42 +589,34 @@ int main(int argc, char *argv[])
       for (int j = 0; j < maxf; j++) {
         //energyf is time-integral square amplitude, total energy at bin f is fJ_f
         //should have units of fJ
-        energyf[j] = 1e-2 / tl_data.Zw * tstep / max * (pow(out[j][0], 2) + pow(out[j][1], 2));
-        if (addNoise) {
-          nenergyf[j] = 1e-2 / tl_data.Zw * tstep / max * (pow(out_n[j][0], 2) + pow(out_n[j][1], 2));
-        }
+        energyf[j] = 1.e15 / tl_data.Zw * tstep * US2S / max * (pow(out[j][0], 2) + pow(out[j][1], 2));
         //powerf is mean square amplitude, time-averaged power at bin f is fW_f
         //should have units of fW 
-        powerf[j] = 1e4 / tl_data.Zw / max / max * (pow(out[j][0], 2) + pow(out[j][1], 2));
-        if (addNoise) {
-          npowerf[j] = 1e4 / tl_data.Zw / max / max * (pow(out_n[j][0], 2) + pow(out_n[j][1], 2));
-        }
+        powerf[j] = 1.e15 / tl_data.Zw / max / max * (pow(out[j][0], 2) + pow(out[j][1], 2));
         //ESD is appr energy spectral density E(f), total energy at f is integral of ESD 
         //should have units of fJ per Hz
-        ESD[j] = 1e-8 / tl_data.Zw * (pow(tstep * out[j][0], 2) + pow(tstep * out[j][1], 2));
-        if (addNoise) {
-          nESD[j] = 1e-8 / tl_data.Zw * (pow(tstep * out_n[j][0], 2) + pow(tstep * out_n[j][1], 2));
+        ESD[j] = 1.e15 / tl_data.Zw * (pow(tstep * US2S* out[j][0], 2) + pow(tstep * US2S* out[j][1], 2));
+        if (transNoise) {
+          nenergyf[j] = 1.e15 / tl_data.Zw * tstep * US2S / max * (pow(out_n[j][0], 2) + pow(out_n[j][1], 2));
+          npowerf[j] = 1.e15 / tl_data.Zw / max / max * (pow(out_n[j][0], 2) + pow(out_n[j][1], 2));
+          nESD[j] = 1.e15 / tl_data.Zw * (pow(tstep * US2S * out_n[j][0], 2) + pow(tstep * US2S * out_n[j][1], 2));
         }
       }
       //now add in negative frequencies, essentially adding same power in twice b/c r2c FFTW
       for (int j = maxf; j < max; j++) {     //for k=1...maxf-1(excluding DC and nyquist)
         //time-integral square amplitude, total energy at bin f is fJ_f
         //should have units of fJ
-        energyf[max - j] += 1e-2 / tl_data.Zw * tstep / max * (pow(out[max - j][0], 2) + pow(out[max - j][1], 2));
-        if (addNoise) {
-          nenergyf[max - j] += 1e-2 / tl_data.Zw * tstep / max * (pow(out_n[max - j][0], 2) + pow(out_n[max - j][1], 2));
-        }
+        energyf[max - j] += 1.e15 / tl_data.Zw * tstep * US2S / max * (pow(out[max - j][0], 2) + pow(out[max - j][1], 2));
         //mean square amplitude, time-averaged power at bin f is fW_f
         //should have units of fW 
-        powerf[max - j] += 1e4 / tl_data.Zw / max / max * (pow(out[max - j][0], 2) + pow(out[max - j][1], 2));
-        if (addNoise) {
-          npowerf[max - j] += 1e4 / tl_data.Zw / max / max * (pow(out_n[max - j][0], 2) + pow(out_n[max - j][1], 2));
-        }
+        powerf[max - j] += 1.e15 / tl_data.Zw / max / max * (pow(out[max - j][0], 2) + pow(out[max - j][1], 2));
         //appr energy spectral density E(f), total energy at f is integral of ESD 
         //should have units of fJ per Hz
-        ESD[max - j] += 1e-8 / tl_data.Zw * (pow(tstep * out[max - j][0], 2) + pow(tstep * out[max - j][1], 2));
-        if (addNoise) {
-          nESD[max - j] += 1e-8 / tl_data.Zw * (pow(tstep * out_n[max - j][0], 2) + pow(tstep * out_n[max - j][1], 2));
+        ESD[max - j] += 1.e15 / tl_data.Zw * (pow(tstep * US2S * out[max - j][0], 2) + pow(tstep * US2S * out[max - j][1], 2));
+        if (transNoise) {
+          nenergyf[max - j] += 1.e15 / tl_data.Zw * tstep * US2S / max * (pow(out_n[max - j][0], 2) + pow(out_n[max - j][1], 2));
+          npowerf[max - j] += 1.e15 / tl_data.Zw / max / max * (pow(out_n[max - j][0], 2) + pow(out_n[max - j][1], 2));
+          nESD[max - j] += 1.e15 / tl_data.Zw * (pow(tstep * US2S * out_n[max - j][0], 2) + pow(tstep * US2S * out_n[max - j][1], 2));
         }
       }
 
@@ -658,8 +627,6 @@ int main(int argc, char *argv[])
       TH1F *h1 = new TH1F(Form("hPS_%d", i), "Power Spectrum", bins, (binL + 0.5) * binWidth, (binL + bins + 0.5) * binWidth);
       h1->SetXTitle("Freq [GHz]");
       h1->SetYTitle("Power per Freq bin");
-      cout << "delf " << delf << endl;
-      cout << "N/2+1: " << maxf << endl;
       for (Int_t j = 0; j < maxf; j++) {
         pc.Hz = Double_t(j) * delf;
         pc.outr = out[j][0];
@@ -669,7 +636,7 @@ int main(int argc, char *argv[])
         pc.fW_f = powerf[j];
         h1->AddBinContent(h1->FindBin(Double_t(j) * delf / 1.0e9), powerf[j]);
         fftTree->Fill();
-        if (addNoise) {
+        if (transNoise) {
           npc.Hz = Double_t(j) * delf;
           npc.outr = out_n[j][0];
           npc.outi = out_n[j][1];
@@ -679,28 +646,29 @@ int main(int argc, char *argv[])
           nfftTree->Fill();
         }
       }
-      cout << "Ntuple filled " << endl;
+      double f0 = h1->GetBinCenter(h1->GetMaximumBin())*1.e9;
+      //cout << "Trees filled " << endl;
       //now make arrays and do fitting
       double *time_array = (double *) fftw_malloc(sizeof(double) * N);
       double *powert = (double *) fftw_malloc(sizeof(double) * N);
       double *freq_array = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
       double *PSD = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
       for (int k = 0; k < max; k++) {
-        powert[k] = 1e4 / tl_data.Zw * (pow(in_for[k], 2));    //should have units of fW 
-        time_array[k] = (k + 1) * tstep / 1.0e6;    //convert to s
+        powert[k] = 1.e15 / tl_data.Zw * (pow(in_for[k], 2));    //should have units of fW 
+        time_array[k] = (k + 1) * tstep * US2S;    //convert to s
       }
       for (int k = 0; k < maxf; k++) {
         freq_array[k] = k * delf;
-        PSD[k] = ESD[k] / max / tstep * 1e6;     //should have units of fW per Hz
+        PSD[k] = ESD[k] / max / tstep / US2S;    //should have units of fW per Hz
       }
 
       cout << "fitting " << endl;
-      fit_pow_to_cos(pars, time_array, powert, freq_array, PSD, max, i);
-      fit_fft_to_sinc(pars, freq_array, PSD, maxf, i);
+      fit_pow_to_cos(pars, time_array, powert, f0, max, i);
+      fit_fft_to_sinc(pars, freq_array, PSD, f0, i);
 
       fftTree->Write();
       h1->Write();
-      if (addNoise) {
+      if (transNoise) {
         nfftTree->Write();
       }
 
@@ -725,7 +693,7 @@ int main(int argc, char *argv[])
     ntarray[13] = impedance;
     ntarray[14] = x_ant;
     ntarray[15] = n_del * tstep;
-    ntarray[16] = atten;
+    ntarray[16] = tl_data.att;
     if (transform) {
       ntarray[17] = pars[0];
       ntarray[18] = pars[1];
@@ -737,9 +705,8 @@ int main(int argc, char *argv[])
       ntarray[24] = pars[7];
     }
     runcard->Fill(ntarray);
-    cout << "done w/ loop " << i << endl;
+    cout << "done w/ particle " << i << endl;
 
-    cout << "freeing " << i << endl;
     fftw_destroy_plan(p);
     fftw_free(in_for);
     fftw_free(in_bk);
@@ -747,7 +714,7 @@ int main(int argc, char *argv[])
     fftw_free(ESD);
     fftw_free(powerf);
     fftw_free(energyf);
-    if (addNoise) {
+    if (transNoise) {
       fftw_free(in_n);
       fftw_free(out_n);
       fftw_free(nESD);
@@ -792,13 +759,11 @@ int calculate_radiation(INTERINFO ii, double *in, double dir, double d_ant)
       status = get_tl_efield(position, efield);
       in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;
-    case 3:                      //square waveguide, use omega to calculate cutoff freq.
-      set_sq_wg_Zw(omega / c);
+    case 3:                      //square waveguide
       status = get_sq_wg_efield(position, efield);
       in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;
-    case 4:                      //circular waveguide, use omega to calculate cutoff freq.
-      set_circ_wg_Zw(omega / c);
+    case 4:                      //circular waveguide
       status = get_circ_wg_efield(phase, position, efield);
       in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;

@@ -61,11 +61,11 @@ int main(int argc, char *argv[])
       init_tl_data(kFALSE);
       break;
     case 3:                      //square wg
-      init_sq_wg_data(27.05e3 * 2 * M_PI / c);
+      init_sq_wg_data(OMEGA0 / Clight / M2CM);
       //Warning!  Wave imp. for TE modes freq dep, not implemented properly
       break;
     case 4:                      //circular wg
-      init_circ_wg_data(27.05e3 * 2 * M_PI / c);
+      init_circ_wg_data(OMEGA0 / Clight / M2CM);
       //Warning!  Wave imp. for TE modes freq dep, not implemented properly
       break;
     case 5:                      //parallel plates/strips
@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
       init_tl_data(kTRUE);
       break;
   }
-  double kT = (parameter.antenna_temp) * 1.38e-8;    //fJ, T=35K, amplifier Teff = 25 K
+  double kT = (parameter.antenna_temp) * K_BOL;    //fJ, T=35K, amplifier Teff = 25 K
+  if (kT == 0 ) kT = K_BOL;
   double impedance = parameter.impedance; //normalized load impedance
   double refCo = (impedance - 1) / (impedance + 1);
   if (std::isinf(impedance)) {
@@ -105,16 +106,19 @@ int main(int argc, char *argv[])
 
     //initialize values
     wf_1->GetEntry(1);
-    double delt = wf_1->FindLeaf("t")->GetValue();
+    double delt = wf_1->FindLeaf("t")->GetValue();//in secs
+    double tmax = parameter.max_tof_in_sec;
     double tSize = 5.0e-5;      //in seconds, < 50 us if free space energy loss
     if (refCo == 1) {
       tSize = 1.3e-5;           //in seconds, 4xfree space energy loss
     }
+    if ( tmax < tSize) tSize = tmax; 
     Int_t Ntot = tSize / delt;  //max size of fft
     double delf = 1 / tSize;    //in Hz
     const Int_t nX = nEntries / Ntot;     //number of ffts
-    cout << "Number of transforms: " << nX << endl;
-    Int_t nY = Ntot / 2 + 1;
+    cout << "Number of transforms: " << nX;
+    cout << " " << tSize << " s long " << endl;
+    Int_t nY = Ntot / 2 + 1;//number of freq bins
     double *wf;
     wf = (double *) fftw_malloc(sizeof(double) * Ntot);
     fftw_complex *out_fd;
@@ -147,7 +151,7 @@ int main(int argc, char *argv[])
       //cout << "time " << (i+0.5)*tSize << endl;
       for (int k = 0; k < Ntot; k++) {
         wf_1->GetEntry(k + i * Ntot);
-        wf[k] = wf_1->FindLeaf("vtot")->GetValue();
+        wf[k] = wf_1->FindLeaf("nEf")->GetValue();
       }
       //from time to freq. 
       fftw_execute(p_flong);
@@ -156,16 +160,16 @@ int main(int argc, char *argv[])
         bin = h2->GetBin(i + 1, j + 1);
         //mean square amplitude, time-averaged power at bin f is fW_f
         //should have units of fW 
-        h2->SetBinContent(bin, 1e+38 / tl_data.Zc / Ntot / Ntot * (pow(out_fd[j][0], 2) + pow(out_fd[j][1], 2)));
-        powerf[j] = 1e+38 / tl_data.Zc / Ntot / Ntot * (pow(out_fd[j][0], 2) + pow(out_fd[j][1], 2));
+        h2->SetBinContent(bin, 1e+15 / tl_data.Zw / Ntot / Ntot * (pow(out_fd[j][0], 2) + pow(out_fd[j][1], 2)));
+        powerf[j] = 1e+15 / tl_data.Zw / Ntot / Ntot * (pow(out_fd[j][0], 2) + pow(out_fd[j][1], 2));
       }
       //now add in negative frequencies 
       for (int j = Ntot / 2 + 1; j < Ntot; j++) {
         bin = h2->GetBin(i + 1, Ntot - j + 1);
         //mean square amplitude, time-averaged power at bin f is fW_f
         //should have units of fW 
-        h2->AddBinContent(bin, 1e+38 / tl_data.Zc / Ntot / Ntot * (pow(out_fd[Ntot - j][0], 2) + pow(out_fd[Ntot - j][1], 2)));
-        powerf[Ntot - j] += 1e+38 / tl_data.Zc / Ntot / Ntot * (pow(out_fd[Ntot - j][0], 2) + pow(out_fd[Ntot - j][1], 2));
+        h2->AddBinContent(bin, 1e+15 / tl_data.Zw / Ntot / Ntot * (pow(out_fd[Ntot - j][0], 2) + pow(out_fd[Ntot - j][1], 2)));
+        powerf[Ntot - j] += 1e+15 / tl_data.Zw / Ntot / Ntot * (pow(out_fd[Ntot - j][0], 2) + pow(out_fd[Ntot - j][1], 2));
         if ((powerf[Ntot - j] > zCut * noiseP) || (powerf[Ntot - j] + powerf[Ntot - (j - 1)] > zCut * noiseP)) {
           signalFT = kTRUE;
           if (NsigFT == 0) {

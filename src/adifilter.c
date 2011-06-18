@@ -56,22 +56,18 @@ int main(int argc, char *argv[])
     parameter_file_found = 1;
   }
 
-  double kT = (parameter.antenna_temp) * 1.38e-8;     //fJ, T=35K, amplifier Teff = 25 K
-  Bool_t addNoise = kFALSE;
-  if (kT > 0) {
-    addNoise = kTRUE;
-  }
+  double kT = (parameter.antenna_temp) * K_BOL;     //fJ, T=35K, amplifier Teff = 25 K
   init_data();                  //set default tl_data
   switch (parameter.rad_calc_mode) {
     case 2:                      //parallel wires
       init_tl_data(kFALSE);
       break;
     case 3:                      //square wg
-      init_sq_wg_data(27.05e3 * 2 * M_PI / c);
+      init_sq_wg_data(OMEGA0 / Clight / M2CM);
       //Warning!  Wave imp. for TE modes freq dep, not implemented properly
       break;
     case 4:                      //circular wg
-      init_circ_wg_data(27.05e3 * 2 * M_PI / c);
+      init_circ_wg_data(OMEGA0 / Clight / M2CM);
       //Warning!  Wave imp. for TE modes freq dep, not implemented properly
       break;
     case 5:                      //parallel plates/strips
@@ -84,14 +80,17 @@ int main(int argc, char *argv[])
       init_tl_data(kTRUE);
       break;
   }
-
+  double EF2SIG = sqrt(tl_data.Zc/tl_data.Zw);
+  double SIG2EF = sqrt(tl_data.Zw/tl_data.Zc);
+  double tmax = parameter.max_tof_in_sec;
   TString rootname = cardname + TString(".root");
   TFile *tfin = new TFile(rootname, "read");
 
   TTree *runcard = (TTree *) tfin->Get("runcard");
   Long64_t nEvents = runcard->GetEntries();
   Bool_t printDAT = kFALSE;
-  Bool_t extendWF = kTRUE;
+  //Bool_t extendWF = kTRUE;
+  Bool_t extendWF = kFALSE;
 
   //set root's global rand gen to Mersene Twister
   TRandom3 *r3 = new TRandom3(0);
@@ -102,7 +101,7 @@ int main(int argc, char *argv[])
   //time-domain antenna data, post-filtering and mixing
   typedef struct {
     Long64_t i;
-    Double_t t, Ef;           //units s, fN.cm/C
+    Double_t t, Ef, nEf;           //units s, volts 
     Double_t fW_t, nfW_t;     //units fW 
     Double_t sig, noise, vtot;//units V
   } ANTINFO;
@@ -130,42 +129,43 @@ int main(int argc, char *argv[])
     Long64_t nEntries = fft_in->GetEntries();
     cout << endl;
     cout << endl;
-    cout << cardname << " open with " << nEntries << " freq. bins " << endl;
+    cout << cardname << ".root open with " << nEntries << " freq. bins " << endl;
 
     //new trees
     tfout->cd();
     TTree *antTree = new TTree(Form("ant_%d", event), "filtered time domain results");
-    antTree->Branch("anti", &anti, "i/L:t/D:Ef/D:fW_t/D:nfW_t/D:sig/D:noise/D:vtot/D");
+    antTree->Branch("anti", &anti, "i/L:t/D:Ef/D:nEf/D:fW_t/D:nfW_t/D:sig/D:noise/D:vtot/D");
     TTree *fftTree = new TTree(Form("fft_%d", event), "fft results after filter");
     fftTree->Branch("pc", &pc, "Hz/D:outr/D:outi/D:fW_f/D:fJ_f/D:fJpHz/D");
 
     tfex->cd();
     TTree *wfTree = new TTree(Form("wf_%d", event), "Extended time domain results with noise");
-    wfTree->Branch("wfi", &wfi, "i/L:t/D:Ef/D:fW_t/D:nfW_t/D:sig/D:noise/D:vtot/D");
+    wfTree->Branch("wfi", &wfi, "i/L:t/D:Ef/D:nEf/D:fW_t/D:nfW_t/D:sig/D:noise/D:vtot/D");
     TTree *nfftTree = new TTree(Form("nfft_%d", event), "freq domain results with extra samples");
     nfftTree->Branch("npc", &npc, "Hz/D:noutr/D:nouti/D:nfW_f/D:nfJ_f/D:nfJpHz/D");
 
     //initialize backward fft, take N/2+1 freq. points, create N time points 
     Long64_t N = 2 * (nEntries - 1); //max number of time points for this sim
-    double *out_td;
-    fftw_complex *in;
+    double *out_td, *in_s;
+    fftw_complex *in_td;
     fftw_plan p;
     out_td = (double *) fftw_malloc(sizeof(double) * N);
-    in = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * N);
+    in_s = (double *) fftw_malloc(sizeof(double) * N);
+    in_td = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * N);
 
     //iniitalize other arrays
     Long64_t nF = 0;                 //nF=N/2+1
     Double_t freq = 0, fMax = 0;
     Double_t LO = 26.9e9;       //Total Local oscillator, in Hz, minimum 24.5, max 26.4?
     Double_t SF = 6e8;          //Sampling Freq, in Hz, max is 2.5e9, bandwidth is SF/2, goal is 0.2 GHz
-    cout << "Reading in power spectrum: LO " << LO * 1e-9 << " GHz, SF: " << SF * 1e-6 << " MHz " << endl;
+    cout << "Reading in power spectrum: LO " << LO * 1.e-9 << " GHz, SF: " << SF * 1.e-6 << " MHz " << endl;
     for (int i = 0; i < nEntries; i++) {
       fft_in->GetEntry(i);
       freq = fft_in->FindLeaf("Hz")->GetValue();
       //this is mixing and filtering section
       if (freq >= LO && (freq - LO) <= SF / 2) {
-        in[nF][0] = fft_in->FindLeaf("outr")->GetValue();
-        in[nF][1] = fft_in->FindLeaf("outi")->GetValue();
+        in_td[nF][0] = fft_in->FindLeaf("outr")->GetValue();
+        in_td[nF][1] = fft_in->FindLeaf("outi")->GetValue();
         nF++;                   //number of freq. points within filter
         fMax = freq - LO;
       }
@@ -174,41 +174,35 @@ int main(int argc, char *argv[])
     cout << " filtered freq points: " << nF << " and time points 2*(nF-1) " << 2 * (nF - 1) << endl;
     Long64_t max = TMath::Min(N, 2 * (nF - 1));
     //from freq. to time
-    p = fftw_plan_dft_c2r_1d(max, in, out_td, FFTW_ESTIMATE);
+    p = fftw_plan_dft_c2r_1d(max, in_td, out_td, FFTW_ESTIMATE);
     cout << "executing backward fft " << max << endl;
     fftw_execute(p);
-    cout << "done backward fft" << endl;
 
     //write time domain to file
     Double_t delt = 1 / 2.0 / fMax;     //in seconds, =1/SF
     double sig[max];
-    double noise[max];
     for (Long64_t j = 0; j < max; j++) {
       out_td[j] = out_td[j] / 2 / (nEntries - 1);     //backward needs to be normalized
       anti.i = j;
       anti.t = (j + 1) * delt;
       anti.Ef = out_td[j];      //no noise
-      sig[j] = sqrt(tl_data.Zc / tl_data.Zw) * 1e-17 * out_td[j];
-      noise[j] = r3->Gaus(0, sqrt(kT * fMax * tl_data.Zc) * 1e-19);
-      out_td[j] = sig[j];
-      if (addNoise) {
-        out_td[j] = sig[j] + noise[j];    //units sqrt fW
-      }
+      sig[j] = EF2SIG * out_td[j];//volts
       anti.sig = sig[j];
-      anti.noise = noise[j];
-      anti.vtot = sig[j] + noise[j];
-      anti.fW_t = pow(sig[j], 2) / tl_data.Zc * 1e+38;    //units of fW, no noise
-      anti.nfW_t = pow(anti.vtot, 2) / tl_data.Zc * 1e+38;     //units of fW, with noise
+      anti.noise = r3->Gaus(0, sqrt(kT * fMax * tl_data.Zc) );//volts
+      anti.vtot = sig[j] + anti.noise;
+      anti.nEf = SIG2EF * anti.vtot;//Ef w/ noise
+      in_s[j] = anti.nEf;
+      anti.fW_t = pow(sig[j], 2) / tl_data.Zc * 1.e+15;    //units of fW, no noise
+      anti.nfW_t = pow(anti.vtot, 2) / tl_data.Zc * 1.e+15;     //units of fW, with noise
       tfout->cd();
       antTree->Fill();
     }
     //now back to freq domain for short sample
-    cout << "initializing short forward fft " << max << endl;
     fftw_complex *out_s;
     fftw_plan p_forward;
     out_s = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * max);
     //from time to freq. 
-    p_forward = fftw_plan_dft_r2c_1d(max, out_td, out_s, FFTW_ESTIMATE);
+    p_forward = fftw_plan_dft_r2c_1d(max, in_s, out_s, FFTW_ESTIMATE);
     cout << "executing short forward fft " << max << endl;
     fftw_execute(p_forward);
     double *energyf, *powerf, *ESD;
@@ -217,15 +211,15 @@ int main(int argc, char *argv[])
     powerf = (double *) fftw_malloc(sizeof(double) * (max / 2 + 1));
     ESD = (double *) fftw_malloc(sizeof(double) * (max / 2 + 1));
     for (int j = 0; j <= max / 2; j++) {
-      powerf[j] = 1e+38 / tl_data.Zc / max / max * (pow(out_s[j][0], 2) + pow(out_s[j][1], 2));
-      energyf[j] = 1e+38 * delt / tl_data.Zc / max * (pow(out_s[j][0], 2) + pow(out_s[j][1], 2));
-      ESD[j] = 1e+38 * (pow(delt * out_s[j][0], 2) + pow(delt * out_s[j][1], 2)) / tl_data.Zc;
+      powerf[j] = 1.e+15 / tl_data.Zw / max / max * (pow(out_s[j][0], 2) + pow(out_s[j][1], 2));
+      energyf[j] = 1.e+15 / tl_data.Zw * delt / max * (pow(out_s[j][0], 2) + pow(out_s[j][1], 2));
+      ESD[j] = 1.e+15 / tl_data.Zw * (pow(delt * out_s[j][0], 2) + pow(delt * out_s[j][1], 2));
     }
     //now add in negative frequencies 
     for (int j = max / 2 + 1; j < max; j++) {
-      powerf[max - j] += 1e+38 / tl_data.Zc / max / max * (pow(out_s[max - j][0], 2) + pow(out_s[max - j][1], 2));
-      energyf[max - j] += 1e+38 * delt / tl_data.Zc / max * (pow(out_s[max - j][0], 2) + pow(out_s[max - j][1], 2));
-      ESD[max - j] += 1e+38 * (pow(delt * out_s[max - j][0], 2) + pow(delt * out_s[max - j][1], 2)) / tl_data.Zc;
+      powerf[max - j] += 1.e+15 / tl_data.Zw / max / max * (pow(out_s[max - j][0], 2) + pow(out_s[max - j][1], 2));
+      energyf[max - j] += 1.e+15 / tl_data.Zw * delt / max * (pow(out_s[max - j][0], 2) + pow(out_s[max - j][1], 2));
+      ESD[max - j] += 1.e+15 / tl_data.Zw * (pow(delt * out_s[max - j][0], 2) + pow(delt * out_s[max - j][1], 2));
     }
     double delf = 1.0 / max / delt;
     for (int j = 0; j < max / 2; j++) {
@@ -241,14 +235,13 @@ int main(int argc, char *argv[])
 
     //add extra time points of noise
     int Ntot = max;             //max number of time points for this sim
-    double tlength = 0.0020;    //duration of extended waveform in sec
-    int start = 0;              //start of signal in time bins
     if (extendWF) {
-      Ntot = tlength / delt;    //max number of time points for this sim
-      start = int (r3->Rndm() * Ntot);
-      cout << start << endl;
-      cout << "Creating " << Ntot << " points, " << Ntot * delt << " s long with data at " << start * delt << endl;
+      tmax = 0.0020;    //duration of extended waveform in sec
     }
+    int start = 0;              //start of signal in time bins
+    Ntot = tmax / delt;    //max number of time points for this sim
+    start = int (r3->Rndm() * Ntot);
+    cout << "Creating WF with " << Ntot << " points, " << Ntot * delt << " s long with data at " << start * delt << endl;
     ofstream outFile;
     if (printDAT) {
       outFile.open(cardname + "_VolVsT.dat");     //fix
@@ -257,30 +250,26 @@ int main(int argc, char *argv[])
       outFile.precision(6);
       outFile.setf(ios::scientific, ios::floatfield);
     }
-    //will be fft input
-    double *wf;
-    wf = (double *) fftw_malloc(sizeof(double) * Ntot);
+    //will be long fft input
+    double *in_l;
+    in_l = (double *) fftw_malloc(sizeof(double) * Ntot);
     for (int j = 0; j < Ntot; j++) {
       wfi.i = j;
       wfi.t = j * delt;
-      wf[j] = 0;
-      if (addNoise) {
-        wf[j] = r3->Gaus(0, sqrt(kT * fMax * tl_data.Zc) * 1e-19);
-      }
+      in_l[j] = 0;
       wfi.sig = 0;
-      wfi.Ef = 0;               //no noise
-      wfi.noise = wf[j];
+      wfi.noise = r3->Gaus(0, sqrt(kT * fMax * tl_data.Zc) );
       if (j >= start && j < start + max) {
-        wf[j] = out_td[j - start];     //units volts
         wfi.sig = sig[j - start];      //units volts
-        wfi.Ef = sig[j - start] * 1e17 / sqrt(tl_data.Zc / tl_data.Zw);   //no noise
-        wfi.noise = noise[j - start];
       }
-      wfi.vtot = wf[j];
-      wfi.fW_t = pow(wfi.sig, 2) / tl_data.Zc * 1e+38;     //units of fW, no noise
-      wfi.nfW_t = pow(wf[j], 2) / tl_data.Zc * 1e+38;     //units of fW, includes noise
+      wfi.vtot = wfi.sig + wfi.noise;
+      wfi.Ef = wfi.sig * SIG2EF;   //no noise
+      wfi.nEf = wfi.vtot * SIG2EF;   //w/ noise
+      in_l[j] = wfi.nEf;
+      wfi.fW_t = pow(wfi.sig, 2) / tl_data.Zc * 1.e+15;     //units of fW, no noise
+      wfi.nfW_t = pow(wfi.vtot, 2) / tl_data.Zc * 1.e+15;     //units of fW, includes noise
       if (printDAT) {
-        outFile << j * delt << "\t" << wf[j] << endl;
+        outFile << j * delt << "\t" << wfi.vtot << endl;
       }
       tfex->cd();
       wfTree->Fill();
@@ -289,15 +278,14 @@ int main(int argc, char *argv[])
       outFile.close();
     }
     //now back to freq domain
-    fftw_complex *out_fd;
+    fftw_complex *out_l;
     fftw_plan p_flong;
-    out_fd = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * Ntot);
+    out_l = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * Ntot);
     //from time to freq. 
-    p_flong = fftw_plan_dft_r2c_1d(Ntot, wf, out_fd, FFTW_ESTIMATE);
+    p_flong = fftw_plan_dft_r2c_1d(Ntot, in_l, out_l, FFTW_ESTIMATE);
     cout << "executing long forward fft " << Ntot << endl;
     fftw_execute(p_flong);
 
-    cout << "done forward fft" << endl;
     //iniitalize other arrays
     double *nenergyf, *npowerf, *nESD;
     //long time seriew 
@@ -309,28 +297,28 @@ int main(int argc, char *argv[])
     for (int j = 0; j <= Ntot / 2; j++) {
       //mean square amplitude, time-averaged power at bin f is fW_f
       //should have units of fW 
-      npowerf[j] = 1e+38 / tl_data.Zc / Ntot / Ntot * (pow(out_fd[j][0], 2) + pow(out_fd[j][1], 2));
+      npowerf[j] = 1.e+15 / tl_data.Zw / Ntot / Ntot * (pow(out_l[j][0], 2) + pow(out_l[j][1], 2));
       //energyf is time-integral square amplitude, total energy at bin f is fJ_f
       //should have units of fJ
-      nenergyf[j] = 1e+38 * delt / tl_data.Zc / Ntot * (pow(out_fd[j][0], 2) + pow(out_fd[j][1], 2));
-      nESD[j] = 1e+38 * (pow(delt * out_fd[j][0], 2) + pow(delt * out_fd[j][1], 2)) / tl_data.Zc;
+      nenergyf[j] = 1.e+15 / tl_data.Zw * delt / Ntot * (pow(out_l[j][0], 2) + pow(out_l[j][1], 2));
+      nESD[j] = 1.e+15 / tl_data.Zw * (pow(delt * out_l[j][0], 2) + pow(delt * out_l[j][1], 2));
     }
     //now add in negative frequencies 
     for (int j = Ntot / 2 + 1; j < Ntot; j++) {
       //mean square amplitude, time-averaged power at bin f is fW_f
       //should have units of fW 
-      npowerf[Ntot - j] += 1e+38 / tl_data.Zc / Ntot / Ntot * (pow(out_fd[Ntot - j][0], 2) + pow(out_fd[Ntot - j][1], 2));
+      npowerf[Ntot - j] += 1.e+15 / tl_data.Zw / Ntot / Ntot * (pow(out_l[Ntot - j][0], 2) + pow(out_l[Ntot - j][1], 2));
       //time-integral square amplitude, total energy at bin f is fJ_f
       //should have units of fJ
-      nenergyf[Ntot - j] += 1e+38 * delt / tl_data.Zc / Ntot * (pow(out_fd[Ntot - j][0], 2) + pow(out_fd[Ntot - j][1], 2));
-      nESD[Ntot - j] += 1e+38 * (pow(delt * out_fd[Ntot - j][0], 2) + pow(delt * out_fd[Ntot - j][1], 2)) / tl_data.Zc;
+      nenergyf[Ntot - j] += 1.e+15 / tl_data.Zw * delt / Ntot * (pow(out_l[Ntot - j][0], 2) + pow(out_l[Ntot - j][1], 2));
+      nESD[Ntot - j] += 1.e+15 / tl_data.Zw * (pow(delt * out_l[Ntot - j][0], 2) + pow(delt * out_l[Ntot - j][1], 2));
     }
     //now make histogram and fill tree
     delf = 1.0 / Ntot / delt;
     for (int j = 0; j < Ntot / 2; j++) {
       npc.Hz = j * delf;
-      npc.outr = out_fd[j][0];
-      npc.outi = out_fd[j][1];
+      npc.outr = out_l[j][0];
+      npc.outi = out_l[j][1];
       npc.fW_f = npowerf[j];
       npc.fJ_f = nenergyf[j];
       npc.fJpHz = nESD[j];
@@ -352,11 +340,12 @@ int main(int argc, char *argv[])
     fftw_destroy_plan(p);
     fftw_destroy_plan(p_forward);
     fftw_destroy_plan(p_flong);
-    fftw_free(in);
+    fftw_free(in_td);
     fftw_free(out_td);
-    fftw_free(out_fd);
-    fftw_free(wf);
+    fftw_free(in_s);
     fftw_free(out_s);
+    fftw_free(out_l);
+    fftw_free(in_l);
     fftw_free(ESD);
     fftw_free(powerf);
     fftw_free(energyf);
@@ -368,6 +357,5 @@ int main(int argc, char *argv[])
   tfout->Close();
   tfex->Close();
   tfin->Close();
-  cout << "Ntuple filled " << endl;
 
 }

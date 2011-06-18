@@ -10,10 +10,9 @@
 //cyclotron radius and phase of the orbit.
 // This code is meant to translate that into an electric field.
 //and calculate the power transmitted in the + or - x-direction
+//attempting to use SI units
 
 using namespace std;
-double eps = 8.85e-31;          //= e0 in C^2/fN/cm^2 
-double c = Clight * M2CM * 1e-6;	// in cm per us 
 
 //structures store geometry information
 struct t_tl_data tl_data;
@@ -21,22 +20,22 @@ struct t_tl_data tl_data;
 double coeff_of_t(double *efield, double *vel, int dir)
 {
   //returns A C(t), the coefficient of each waveguide mode in +x-direction
-  // in units of fN.cm/C
-  double q = 1.60217646e-19;    //C 
-
-  double coeff = q * tl_data.Zw / 2 * (dir * vel[0] * efield[0] + vel[1] * efield[1] + vel[2] * efield[2]);
-  return coeff;
+  // in units of C*Ohm/s or volts
+  return Echarge * tl_data.Zw / 2 * (dir * vel[0] * efield[0] + vel[1] * efield[1] + vel[2] * efield[2])/US2S;
 }
 
 void init_data()
 {
 //default data
-  tl_data.Zw = 3.77e+25;        //wave imp = Z0 for TEM modes in fN.cm.us/C^2 
+  tl_data.Zw = Z0;        //wave imp = Z0 for TEM modes in Ohms 
   tl_data.R = 0;                //resistance
   tl_data.C = 0;                //capacitance
   tl_data.Zc = tl_data.Zw;      //characteristic imp
+  tl_data.vg = Clight * M2CM / S2US;//group velocity is speed of light
   tl_data.att = 0;              //attenuation coefficient
-  cout << "Default Characteristic Impedance is wave impedance: " << tl_data.Zc * 1.0e-23 << " Ohms" << endl;
+  cout << "Default Wave Impedance : " << tl_data.Zw << " Ohms" << endl;
+  cout << "Default Characteristic Impedance : " << tl_data.Zc << " Ohms" << endl;
+  cout << "Default Group velocity is speed of light: " << tl_data.vg << " cm/us " << endl;
 }
 
 void init_tl_data(bool offset)
@@ -52,13 +51,9 @@ void init_tl_data(bool offset)
   tl_data.rI = 0.005;           //wire radius (50 um) in cm, 38 awg
   double l = abs(tl_data.y2 - tl_data.y1) / 2;	//half wire separation in cm
   cout << "Parallel Wire transmission line with separation: " << 2 * l << " cm" << endl;
-  double rm = 0.015;            //Ohms, resistivity/skin depth for 80K copper
-  tl_data.R = rm / M_PI / tl_data.rI * (l / tl_data.rI / sqrt(pow(l / tl_data.rI, 2) - 1));	//in Ohms/cm 
-  cout << " PW Resistance: " << tl_data.R << " Ohms/cm" << endl;
-  tl_data.C = eps * M_PI / log(l / tl_data.rI + sqrt(pow(l / tl_data.rI, 2) - 1));	//in C^2/fN/cm^2
-  cout << " PW Capacitance : " << tl_data.C * 1e+17 << " Farads/cm" << endl;
-  tl_data.Zc = tl_data.Zw * eps / tl_data.C;	//in fN.cm.us/C^2
-  cout << " PW Characteristic Impedance: " << tl_data.Zc * 1.0e-23 << " Ohms" << endl;
+  tl_data.R = RM / M_PI / tl_data.rI * (l / tl_data.rI / sqrt(pow(l / tl_data.rI, 2) - 1));//in Ohms/cm 
+  tl_data.C = EPS0 / M2CM * M_PI / log(l / tl_data.rI + sqrt(pow(l / tl_data.rI, 2) - 1));//in F/cm
+  calculate_tl_parameters();
 }
 
 int get_tl_efield(double *p, double *efield)
@@ -66,7 +61,7 @@ int get_tl_efield(double *p, double *efield)
   //function returns the electric field between two infinite parallel wires
   //efield normalized the jackson way with 1/cm units
   //wires extend in x-direction and are can be offset 
-  double e_amp = 1 / 2.0 / M_PI * sqrt(tl_data.C / eps);
+  double e_amp = 1 / 2.0 / M_PI * sqrt(tl_data.C / (EPS0 / M2CM));
 
   //check for hitting wires 
   int status = 0;
@@ -97,13 +92,9 @@ void init_pp_data()
   tl_data.n = 1.8;              //correction factor for finite plate
   double g = abs(tl_data.y2 - tl_data.y1);	//plate separation in cm
   cout << "Parallel Plate transmission line with separation: " << g << " cm" << endl;
-  double rm = 0.015;            //Ohms, resistivity/skin depth for 80K copper
-  tl_data.R = rm / tl_data.l;   //in Ohms/cm 
-  cout << " PP Resistance: " << tl_data.R << " Ohms/cm" << endl;
-  tl_data.C = tl_data.n * eps * tl_data.l / g;	//in C^2/fN/cm^2
-  cout << " PP Capacitance : " << tl_data.C * 1e+17 << " Farads/cm" << endl;
-  tl_data.Zc = tl_data.Zw * eps / tl_data.C;	//in fN.cm.us/C^2
-  cout << " PP Characteristic Impedance: " << tl_data.Zc * 1.0e-23 << " Ohms" << endl;
+  tl_data.R = RM / tl_data.l;   //in Ohms/cm 
+  tl_data.C = tl_data.n * EPS0 / M2CM * tl_data.l / g;	//in F/cm
+  calculate_tl_parameters();
 }
 
 int get_pp_efield(double *p, double *efield)
@@ -137,15 +128,25 @@ void init_coax_data()
   tl_data.rI = 0.005;           //wire radius (50 um) in cm, 38 awg
   tl_data.rO = 0.2;             //outer radius of coax, in cm
   cout << "Coaxial Cable transmission line with Radius: " << tl_data.rO << " cm" << endl;
-  double rm = 0.015;            //Ohms, resistivity/skin depth for 80K copper
-  tl_data.R = rm / 2 / M_PI * (1 / tl_data.rI + 1 / tl_data.rO);	//in Ohms/cm 
-  cout << " Coaxial Cable Resistance: " << tl_data.R << " Ohms/cm" << endl;
-  tl_data.C = eps * 2 * M_PI / log(tl_data.rO / tl_data.rI);	//in C^2/fN/cm^2
-  cout << " Coax Capacitance : " << tl_data.C * 1e+17 << " Farads/cm" << endl;
-  tl_data.Zc = tl_data.Zw * eps / tl_data.C;	//in fN.cm.us/C^2
-  cout << " Coax Characteristic Impedance: " << tl_data.Zc * 1.0e-23 << " Ohms" << endl;
+  tl_data.R = RM / 2 / M_PI * (1 / tl_data.rI + 1 / tl_data.rO);	//in Ohms/cm 
+  tl_data.C = EPS0 / M2CM * 2 * M_PI / log(tl_data.rO / tl_data.rI);	//in F/cm
+  calculate_tl_parameters();
 }
 
+void calculate_tl_parameters() {
+  cout << " Resistance: " << tl_data.R << " Ohms/cm" << endl;
+  cout << " Capacitance : " << tl_data.C << " Farads/cm" << endl;
+  tl_data.Zc = tl_data.Zw * EPS0 / M2CM / tl_data.C;	//in Ohms
+  cout << " Characteristic Impedance: " << tl_data.Zc << " Ohms" << endl;
+  
+  double tand = 0.0012;         //Rogers Duroid tangent delta dimensionless
+  double attenG = tl_data.C * tl_data.Zc * OMEGA0 * tand / 2;
+  double attenR = tl_data.R / tl_data.Zc / 2;
+  tl_data.att = attenR + attenG;
+  cout << " Resistive atten coeff: " << attenR << " Neper per cm " << endl;
+  cout << " Conductive atten coeff: " << attenG << " Neper per cm " << endl;
+  
+}
 int get_coax_efield(double *p, double *efield)
 {
   //function returns the electric field inside an infinite coaxial cable 
@@ -169,30 +170,26 @@ void init_sq_wg_data(double k0)
 {
   //Square Waveguide, WR-42, centered at origin
   tl_data.y1 = 1.0668;             //cm, y-dir, largest dim of wg, >wavelength/2 
-  tl_data.y2 = 0.4318;             //cm, z-dir, smallest dim of wg, < wavelength/2
+  tl_data.z1 = 0.4318;             //cm, z-dir, smallest dim of wg, < wavelength/2
   //Warning!  Wave imp. for TE modes freq dep, not implemented properly
-  //set impdence for TE modes in fN.cm.us/C^2
+  //set impdence for TE modes in Ohm
   //k0 = omega_cyclotron/c;
   //kj is cutoff frequency for that waveguide
-  double z0 = 3.77e+25;         //in fN.cm.us/C^2 
   double kj = M_PI / tl_data.y1;
+  double betaj = 0;
   tl_data.Zw = 0;
   if (k0 > kj) {
-    tl_data.Zw = k0 * z0 / sqrt(pow(k0, 2) - pow(kj, 2));	//in fN.cm.us/C^2
+    betaj = sqrt(pow(k0, 2) - pow(kj, 2));
+    tl_data.Zw = k0 * Z0 / betaj;	//in Ohm
+    tl_data.vg = Clight * M2CM / S2US * betaj / k0;	//group velocity, cm/us
+    tl_data.att = RM/tl_data.y1/tl_data.z1/betaj/k0/Z0*(2*tl_data.z1*kj*kj+tl_data.y1*k0*k0);
   }
   cout << "Square Waveguide with largest dim: " << tl_data.y1 << " cm" << endl;
-  cout << " SqWg Cutoff Freq: " << kj * c / 2 / M_PI << "MHz " << endl;
-  cout << " SqWg Wave Impedance: " << tl_data.Zw * 1.0e-23 << " Ohms" << endl;
-}
+  cout << " SqWg Cutoff Freq: " << kj * Clight * M2CM * 1e-9 / 2 / M_PI << " GHz " << endl;
+  cout << " SqWg Wave Impedance: " << tl_data.Zw << " Ohms" << endl;
+  cout << " SqWg Attenuation: " << tl_data.att << " Nepers per cm" << endl;
+  cout << " SqWg Group Velocity: " << tl_data.vg << " cm/us" << endl;
 
-void set_sq_wg_Zw(double k0)
-{
-  double z0 = 3.77e+25;         //in fN.cm.us/C^2 
-  double kj = M_PI / tl_data.y1;
-  tl_data.Zw = 0;
-  if (k0 > kj) {
-    tl_data.Zw = k0 * z0 / sqrt(pow(k0, 2) - pow(kj, 2));	//in fN.cm.us/C^2
-  }
 }
 
 int get_sq_wg_efield(double *pos, double *efield)
@@ -202,14 +199,14 @@ int get_sq_wg_efield(double *pos, double *efield)
   //efield normalized the jackson way with 1/cm units
   //waveguide extends in x-direction
   // wavelength of 27 GHz radiation is 1.1 cm
-  double e_amp = sqrt(2 / tl_data.y1 / tl_data.y2);
+  double e_amp = sqrt(2 / tl_data.y1 / tl_data.z1);
   int status = 0;
 
   if ((pos[1] > tl_data.y1 / 2) || (pos[1] < -tl_data.y1 / 2)) {
     cout << "Problem!!! Electron hit a wall in y-dir! " << endl;
     status = 1;
   }
-  if ((pos[2] > tl_data.y2 / 2) || (pos[2] < -tl_data.y2 / 2)) {
+  if ((pos[2] > tl_data.z1 / 2) || (pos[2] < -tl_data.z1 / 2)) {
     cout << "Problem!!! Electron hit a wall in z-dir! " << endl;
     status = 1;
   }
@@ -224,31 +221,18 @@ void init_circ_wg_data(double k0)
   //Circular Waveguide
   tl_data.rO = 1.0;             //cm, radius of wg, >wavelength/3.41 
   //Warning!  Wave imp. for TE modes freq dep, not implemented properly
-  //set impdence for TE modes in fN.cm.us/C^2
+  //set impdence for TE modes in Ohm
   //k0 = omega_s/c;
   //kj is cutoff frequency for that waveguide
   double p1 = 1.841;            //1st zero of the derivate of bessel function
-  double z0 = 3.77e+25;         //in fN.cm.us/C^2 
   double kj = p1 / tl_data.rO;
   tl_data.Zw = 0;
   if (k0 > kj) {
-    tl_data.Zw = k0 * z0 / sqrt(pow(k0, 2) - pow(kj, 2));	//in fN.cm.us/C^2
+    tl_data.Zw = k0 * Z0 / sqrt(pow(k0, 2) - pow(kj, 2));	//in Ohms
   }
   cout << "Circ Waveguide with Radius: " << tl_data.rO << " cm" << endl;
-  cout << " Circ WG Cutoff Freq: " << kj * c / 2 / M_PI << "MHz " << endl;
-  cout << " Circ WG Wave Impedance: " << tl_data.Zw * 1.0e-23 << " Ohms" << endl;
-}
-
-void set_circ_wg_Zw(double k0)
-{
-  //Circular Waveguide
-  double p1 = 1.841;            //1st zero of the derivate of bessel function
-  double kj = p1 / tl_data.rO;
-  double z0 = 3.77e+25;         //in fN.cm.us/C^2 
-  tl_data.Zw = 0;
-  if (k0 > kj) {
-    tl_data.Zw = k0 * z0 / sqrt(pow(k0, 2) - pow(kj, 2));	//in fN.cm.us/C^2
-  }
+  cout << " Circ WG Cutoff Freq: " << kj * Clight * M2CM * 1e-9 / 2 / M_PI << " GHz " << endl;
+  cout << " Circ WG Wave Impedance: " << tl_data.Zw << " Ohms" << endl;
 }
 
 int get_circ_wg_efield(double phase, double *pos, double *efield)
