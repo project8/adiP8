@@ -20,5 +20,18 @@ Ben LaRoque (personal laptop)
     ROOT:
       ROOT 5.31/01 (trunk@39580, Jun 07 2011, 16:04:34 on linux)
 
+Michelle Leber (laptop)
+    OS:
+      Mac OSX 10.6.7 Darwin Kernel Version 10.7.0 i386
+    GCC:
+      gcc version 4.2.1 (Apple Inc. build 5666) (dot 3)
+    FFTW:
+      FFTW-3.2.2
+    ROOT:
+      ROOT 5.28/00c (tags/v5-28-00c@38884, Apr 15 2011, 17:34:24 on macosx64)
+
+Wishlist:
+~Produce a "proper" configure script to check for dependencies, create directories, and setup the makefile with your compiler.
+
 Wishlist:
 ~Produce a "proper" configure script to check for dependencies, create directories, and setup the makefile with your compiler.
