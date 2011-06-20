@@ -112,57 +112,32 @@ int main(int argc, char *argv[])
       }
 
       if (init_status > 0) {
-        do {
-          choice = 0;
-          cout << endl;
-          cout << "          ================== Main-MENU ==================";
-          cout << endl << endl;
-          cout << "                     r : show run-file entries" << endl;
-          cout << "                     p : reload INI Parameters" << endl << endl;
-          cout << "                     1 : Particle Tracking" << endl;
-          cout << "                     2 : Transmission Test" << endl;
-          cout << "                     3 : Trapping Volume Test" << endl;
-          cout << "                     4 : Scan Field/Pot in pa0" << endl;
-          cout << "                     5 : Scan magnetic Field in pa" << endl;
-          cout << "                     6 : MC-Tracking in Gaps" << endl << endl;
-          cout << "                     q : Exit ADIPARK" << endl << endl;
-          cout << "            Choose: ";
-          choice = getchar();   // input from user 
-          cout << endl;
-          getchar();            // dummy to remove RETURN after command
-          switch (choice) {
-            case 'q':
-              break;
-            case 'r':
-              sim_help_show_run_file(parameter_filename);
-              break;
-            case 'p':
-              init_parameters();
-              load_init_data(parameter_filename);
-              break;
-            case '1':
-              tracking_loop(parameter_filename);
-              break;
-            case '2':
-              cout << "ATTENTION: transmission loop disabled!" << endl;
-              // transmission_loop(parameter_filename);
-              break;
-            case '3':
-              trapping_loop(parameter_filename);
-              break;
-            case '4':
-              scan_field_gradient(parameter_filename);
-              break;
-            case '5':
-              scan_Bfield(parameter_filename);
-              break;
-            case '6':
-              mc_tracking(parameter_filename);
-              break;
-            default:
-              cout << "ERROR: Command unknown!" << endl;
-          }
-        } while (choice != 'q');
+        choice = parameter.adip_run_mode;
+        cout << " case is " << choice << endl;
+        switch (choice) {
+          case 1:
+            cout << "got to here" << endl;
+            tracking_loop(parameter_filename);
+            break;
+          case 2:
+            cout << "ATTENTION: transmission loop disabled!" << endl;
+            // transmission_loop(parameter_filename);
+            break;
+          case 3:
+            trapping_loop(parameter_filename);
+            break;
+          case 4:
+            scan_field_gradient(parameter_filename);
+            break;
+          case 5:
+            scan_Bfield(parameter_filename);
+            break;
+          case 6:
+            mc_tracking(parameter_filename);
+            break;
+          default:
+            cout << "ERROR: Command unknown!" << endl;
+        }
         if (ENABLE_EPOT == 1) {
           free_electric_arrays();
         }

@@ -19,6 +19,7 @@ void init_parameters(void)
   }
 
   para_count = 0;
+  sprintf(parameter.name[++para_count], "ADIP_RUN_MODE");
   sprintf(parameter.name[++para_count], "EL_MM_PER_UNIT");
   sprintf(parameter.name[++para_count], "EL_X_OFFSET_IN_CM");
   sprintf(parameter.name[++para_count], "EL_Y_OFFSET_IN_CM");
@@ -87,73 +88,74 @@ void init_parameters(void)
   sprintf(parameter.name[++para_count], "FFT_RESAMPLE_TSTEP");
   sprintf(parameter.name[++para_count], "FFT_MAX_NPTS");
 
-  parameter.el_mm_unit = 0.;
+  parameter.adip_run_mode = 1;
+  parameter.el_mm_unit = 1.;
   parameter.el_x_offset = 0.;
   parameter.el_y_offset = 0.;
   parameter.el_z_offset = 0.;
-  parameter.mag_mm_unit = 0.;
+  parameter.mag_mm_unit = 5.;
   parameter.mag_x_offset = 0.;
   parameter.mag_y_offset = 0.;
   parameter.mag_z_offset = 0.;
-  parameter.spec_in = 0.;
-  parameter.spec_out = 0.;
-  parameter.max_radius = 0.;
-  parameter.save_every = 0;
-  parameter.puls_time = 0.;
-  parameter.min_shrink_factor = 0.;
-  parameter.interpol_splat = 0;
-  parameter.max_loops = 0;
-  parameter.n_pot_array = 0;
-  parameter.use_mag_pa = 0;
+  parameter.spec_in = -420.;
+  parameter.spec_out = 420.;
+  parameter.max_radius = 475.;
+  parameter.save_every = 1;
+  parameter.puls_time = 1.;
+  parameter.min_shrink_factor = 0.000000001;
+  parameter.interpol_splat = 1;
+  parameter.max_loops = 1000000;
+  parameter.n_pot_array = 30125000;
+  parameter.use_mag_pa = 2;
   parameter.enable_epot = 0;
   parameter.enable_rel_start_angle = 0;
-  parameter.trap_theta_start = 0.;
-  parameter.trap_theta_step = 0.;
-  parameter.trap_energy_start = 0.;
-  parameter.trap_energy_end = 0.;
+  parameter.trap_theta_start = 80.;
+  parameter.trap_theta_step = 10.;
+  parameter.trap_energy_start = 32.;
+  parameter.trap_energy_end = 8.;
   parameter.trap_phi_start = 0.;
   parameter.trap_neg_y = 0;
-  parameter.trap_y_plane = 0;
-  parameter.trap_z_plane = 0;
-  parameter.trap_max_mirrors = 0;
-  parameter.trap_mass = 0.;
-  parameter.trap_charge = 0.;
-  parameter.trap_max_step_length = 0.;
-  parameter.trap_e_para_min = 0.;
-  parameter.trap_max_tof = 0.;
+  parameter.trap_y_plane = 1;
+  parameter.trap_z_plane = 2;
+  parameter.trap_max_mirrors = 250;
+  parameter.trap_mass = 1.;
+  parameter.trap_charge = 1.;
+  parameter.trap_max_step_length = 0.01;
+  parameter.trap_e_para_min = 0.01;
+  parameter.trap_max_tof = 0.000003;
   parameter.trap_calc_order = 0;
-  parameter.trans_b_pinch = 0;
-  parameter.trans_u_pinch = 0;
-  parameter.trans_steps = 0;
+  parameter.trans_b_pinch = 10.;
+  parameter.trans_u_pinch = 0.;
+  parameter.trans_steps = 10;
   parameter.trap_start_x = 0.;
-  parameter.trap_stop_x = 0.;
-  parameter.trap_step_x = 0;
+  parameter.trap_stop_x = -200.;
+  parameter.trap_step_x = -5.;
   parameter.trap_start_y = 0.;
-  parameter.trap_stop_y = 0.;
-  parameter.trap_step_y = 0.;
-  parameter.para_e_loss = 0;
-  parameter.perp_e_loss = 0;
-  parameter.residual_gas_pressure = -1.;	// default is off
-  parameter.calc_order = 0;
+  parameter.trap_stop_y = 45.;
+  parameter.trap_step_y = 5.;
+  parameter.para_e_loss = 1;
+  parameter.perp_e_loss = 1;
+  parameter.residual_gas_pressure = -1.;
+  parameter.calc_order = 2;
   parameter.dipole_value = 0.;
-  parameter.max_mirrors = 0;
-  parameter.max_tof_in_sec = 0.;
-  parameter.e_para_min = 0.;
-  parameter.max_step_length = 0.;
-  parameter.e_min_cooling = 0.;
+  parameter.max_mirrors = 5000;
+  parameter.max_tof_in_sec = 0.000003;
+  parameter.e_para_min = 0.001;
+  parameter.max_step_length = 0.001;
+  parameter.e_min_cooling = 1.;
 
   parameter.b_field_ben1 = 10.0;
   parameter.b_field_ben2 = 1.0;
   parameter.rad_calc_mode = 2;
   parameter.rad_shift = 1;
   parameter.antenna_temp = 0;
-  parameter.antenna_pos = +1;
-  parameter.impedance = +1;
+  parameter.antenna_pos = +500;
+  parameter.impedance = 1;
   parameter.rad_atten = 1;
 
   parameter.fft_on = 1;
-  parameter.fft_resample_tstep = 1e-6;
-  parameter.fft_max_npts = 10000000;
+  parameter.fft_resample_tstep = 0.000003;
+  parameter.fft_max_npts = 20000000;
 
   printf("    DONE.\n");
 }
@@ -165,6 +167,10 @@ int store_parameter(const char *identifier, double value)
   int number = 0;
 
   if (strcmp(identifier, parameter.name[++number]) == 0) {
+    parameter.adip_run_mode = value;
+    parameter.inited[number] = 1;
+    status = 1;
+  } else if (strcmp(identifier, parameter.name[++number]) == 0) {
     parameter.el_mm_unit = value;
     parameter.inited[number] = 1;
     status = 1;
@@ -494,28 +500,29 @@ int load_init_data(char *filename)
     f_status = 0;
     while (f_status != EOF) {
       f_status = fscanf(f_ini, "#define %s %lf", identifier, &value);
-      //                                                                                                                                                                                                                                                             printf("status1: %d\n",f_status);
+      // printf("status1: %d\n",f_status);
       if (f_status == 2) {
         if (store_parameter(identifier, value) == 1) {
           printf("input value: %-25s = %17.8f   DONE.\n", identifier, value);
         }
 
         f_status = fscanf(f_ini, "%[^\n]\n", remark);
-        //                                                                                                                                                                                                                                                             printf("status2: %d\n",f_status);
+        // printf("status2: %d\n",f_status);
         if (f_status == 0) {
           f_status = fscanf(f_ini, "\n");
         }
-        //                                                                                                                                                                                                                                                             printf("status3: %d\n",f_status);
-        //                                                                                                                                                                                                                                                             printf("remark: %s\n",remark);
+        // printf("status3: %d\n",f_status);
+        // printf("remark: %s\n",remark);
       } else {
         f_status = fscanf(f_ini, "%[^\n]\n", remark);
         if (f_status == 0) {
           f_status = fscanf(f_ini, "\n");
         }
       }
-      //                                                                                                                                                                                                                                                             printf("status4: %d\n",f_status);
+      // printf("status4: %d\n",f_status);
     }
     fclose(f_ini);
   }
-  return check_parameters();
+  //return check_parameters();
+  return 1;
 }

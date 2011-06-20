@@ -106,11 +106,12 @@ struct particle_data
 
 };
 
-#define max_parameter 65
+#define max_parameter 66
  
 struct t_parameter{
   int inited[max_parameter+1];
   char name[max_parameter+1][32];
+  int adip_run_mode;
   double el_mm_unit;
   double el_x_offset;
   double el_y_offset;
