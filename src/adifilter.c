@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     parameter_file_found = 1;
   }
 
-  double kT = (parameter.antenna_temp) * K_BOL;     //fJ, T=35K, amplifier Teff = 25 K
+  double kT = (parameter.antenna_temp) * K_BOL;     //J, T=35K, amplifier Teff = 25 K
   init_data();                  //set default tl_data
   switch (parameter.rad_calc_mode) {
     case 2:                      //parallel wires
@@ -89,8 +89,7 @@ int main(int argc, char *argv[])
   TTree *runcard = (TTree *) tfin->Get("runcard");
   Long64_t nEvents = runcard->GetEntries();
   Bool_t printDAT = kFALSE;
-  //Bool_t extendWF = kTRUE;
-  Bool_t extendWF = kFALSE;
+  Bool_t extendWF = kTRUE;
 
   //set root's global rand gen to Mersene Twister
   TRandom3 *r3 = new TRandom3(0);
@@ -241,7 +240,7 @@ int main(int argc, char *argv[])
     int start = 0;              //start of signal in time bins
     Ntot = tmax / delt;    //max number of time points for this sim
     start = int (r3->Rndm() * Ntot);
-    cout << "Creating WF with " << Ntot << " points, " << Ntot * delt << " s long with data at " << start * delt << endl;
+    cout << "Creating WF with " << Ntot << " points, " << Ntot * delt << " s long with data starting at " << start * delt << " s" << endl;
     ofstream outFile;
     if (printDAT) {
       outFile.open(cardname + "_VolVsT.dat");     //fix

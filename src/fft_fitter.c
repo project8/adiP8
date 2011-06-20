@@ -145,7 +145,6 @@ void fit_fft_to_sinc(double *pars, double *f, double *pow, double f0, int j)
   int imax = 0;
   double delf = f[1];
   imax = f0/delf; 
-  cout << "Peak found at freq: " << f0 << endl;
   //to do the fit we will generate a TGraph and fit that
   //OK, let's generate a pointer to a subarray of OUT
   const int nP = 18;
@@ -191,6 +190,7 @@ void fit_fft_to_sinc(double *pars, double *f, double *pow, double f0, int j)
   pars[5] = sinc->GetParError(1);
   pars[6] = sinc->GetParError(2);
   pars[7] = status;
+  cout << "Sinc peak freq: " << pars[0] << " Hz " << endl;
   cout << "Sinc duration: " << pars[1] << " s " << endl;
   cout << "Sinc function TA power : " << integral << " fW " << endl;
 
@@ -266,17 +266,19 @@ void fit_fft_to_sinc_2nd(double *pars, double *f, double *pow, int N, int j)
   data->Write();
 }
 
-void fit_pow_to_cos(double *pars, double *t, double *pow_t, double f0, int N, int j)
+void fit_pow_to_cos(double *pars, double *pow_t, double tstep, double f0, int j)
 {
   cout << "****************************************************** " << endl;
   cout << "Fitting Instantaneous Power P(t) to cos2(t)" << endl;
   //appropriate for single harmonic
   //find max in p(t) (initial guess at amp)
-  double duration = t[0]*N;
+  int nP = 50;
+  double t[nP];
+  double duration = tstep*nP;
   int imax_t = 0;
   double omax_t = -1;
-  int nP = 50;
   for (int i = 0; i < nP; i++) {
+    t[i] = tstep*(i+1); 
     if (pow_t[i] > omax_t) {
       omax_t = pow_t[i];
       imax_t = i;
@@ -292,19 +294,18 @@ void fit_pow_to_cos(double *pars, double *t, double *pow_t, double f0, int N, in
   data->SetName(Form("cosFit%i", j));
 
 
-  TF1 *cos = new TF1("cosine", "[2]*TMath::Cos(2*TMath::Pi()*x*[0]+[1])^2", t[0], t[nP - 1]);
+  TF1 *cos = new TF1("cosine", "[2]*TMath::Cos(2*TMath::Pi()*x*[0]+[1])^2", 0, duration);
   cos->SetParameters(f0, 0, pow_t[imax_t]);
   cos->SetParNames("frequency", "offset", "amplitude");
   cos->SetLineColor(2);
   cos->SetNpx(1000);
   gStyle->SetOptFit(1111);
-  int status = data->Fit(cos, "q", "", t[0], t[nP - 1]);
+  int status = data->Fit(cos, "q", "", 0, duration);
   //data->Draw("Ap");
-  double integral = cos->Integral(t[0], duration );
+  double integral = cos->Integral(0, duration);
   double ta_power = integral / duration;
-  cout << "cos function integral : " << integral << " fJ " << endl;
-  cout << "cos function duration : " << duration << " s " << endl;
-  cout << "cos function time average power: " << integral / t[N - 1] << " fW " << endl;
+  cout << "cos function freq : " << cos->GetParameter(0) << " Hz " << endl;
+  cout << "cos function time average power: " << ta_power << " fW " << endl;
   //make sure integral and time have same units.
 
   pars[0] = cos->GetParameter(0);

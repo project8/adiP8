@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
       init_tl_data(kTRUE);
       break;
   }
-  double kT = (parameter.antenna_temp) * K_BOL;    //fJ, T=35K, amplifier Teff = 25 K
+  cout << endl << endl;
+  double kT = (parameter.antenna_temp) * K_BOL;    //J, T=35K, amplifier Teff = 25 K
   if (kT == 0 ) kT = K_BOL;
   double impedance = parameter.impedance; //normalized load impedance
   double refCo = (impedance - 1) / (impedance + 1);
@@ -102,7 +103,7 @@ int main(int argc, char *argv[])
 
     TTree *wf_1 = (TTree *) tfout->Get(Form("wf_%d", event));
     Long64_t nEntries = wf_1->GetEntries();
-    cout << cardname << " open with " << nEntries << endl;
+    cout << cardname << "_extended.root open with " << nEntries << " time entries " << endl;
 
     //initialize values
     wf_1->GetEntry(1);
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
     if (refCo == 1) {
       tSize = 1.3e-5;           //in seconds, 4xfree space energy loss
     }
-    if ( tmax < tSize) tSize = tmax; 
+    if ( tmax/2 < tSize) tSize = tmax/2; 
     Int_t Ntot = tSize / delt;  //max size of fft
     double delf = 1 / tSize;    //in Hz
     const Int_t nX = nEntries / Ntot;     //number of ffts
@@ -135,13 +136,13 @@ int main(int argc, char *argv[])
     TH1F *hPSa = new TH1F(Form("hPS_avg_%d", event), "Averaged Power Spectra; Frequency (MHz); Power (fW)", nY, -0.5 * delf * 1e-6, (nY - 0.5) * delf * 1e-6);
     TH1F **hPS = new TH1F *[nX];
     TH1F *hna = new TH1F(Form("hfWn_avg_%d", event), "Averaged Noise; Power (fW); Counts", nY, 0, 1.1);
-    cout << " max time : " << tSize * nX << endl;
+    cout << " max time : " << tSize * nX << " s " << endl;
     int bin;
-    double noiseP = kT * delf;
-    double zCut = 4.6 + log(nY * nX / 4);   //requirement power*noiseP to accept as signal
-    double z0 = 4.6 + log(nY * nX);    //requirement power*noiseP to accept as signal
+    double noiseP = kT * delf * 1.0e15; //fW
+    double z0 = 4.6 + log(nY * nX);    //requirement fraction of noise power to accept as signal
+    double zCut = 4.6 + log(nY * nX / 4);   //cut in code to accept as signal
     Bool_t signalFT = kFALSE;
-    cout << "Required signal: " << zCut * noiseP << endl;
+    cout << "Required signal: " << zCut * noiseP << " fW" << endl;
     int NsigFT = 0;
     double slope = 3.6e8;       //delf/delt for energy loss
     double maxP = 0;
@@ -175,6 +176,7 @@ int main(int argc, char *argv[])
           if (NsigFT == 0) {
             t0_i = i;
           }
+          //cout << powerf[Ntot - j] + powerf[Ntot - (j - 1)] << endl;
         }
         if (powerf[Ntot - j] > maxP) {
           maxP = powerf[Ntot - j];
@@ -188,7 +190,8 @@ int main(int argc, char *argv[])
           hPSa->AddBinContent(j, powerf[j + shift]);
           hPS[NsigFT]->SetBinContent(j, powerf[j]);
         }
-        cout << "Averaging in PS: " << i << " at time " << i * tSize << " with shift" << shift << endl;
+        cout << "Averaging in PS: " << i << " at time " << i * tSize;
+        cout  << " s, with shift " << shift << " bins " << endl;
         hPS[NsigFT]->Write();
         NsigFT += 1;
       }
@@ -200,7 +203,7 @@ int main(int argc, char *argv[])
       }
       signalFT = kFALSE;
     }
-    cout << "Max power: " << maxP << endl;
+    cout << "Max power: " << maxP << " fW"<< endl;
     cout << "Averaged PS: " << NsigFT << endl;
     hPSa->SetTitle(Form("%d Averaged Power Spectra", NsigFT));
     hPSa->Scale(1.0 / NsigFT);

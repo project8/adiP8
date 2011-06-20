@@ -663,7 +663,7 @@ int main(int argc, char *argv[])
       }
 
       cout << "fitting " << endl;
-      fit_pow_to_cos(pars, time_array, powert, f0, max, i);
+      fit_pow_to_cos(pars, powert, tstep * US2S, f0, i);
       fit_fft_to_sinc(pars, freq_array, PSD, f0, i);
 
       fftTree->Write();
