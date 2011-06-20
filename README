@@ -32,6 +32,6 @@ Michelle Leber (laptop)
 
 Wishlist:
 ~Produce a "proper" configure script to check for dependencies, create directories, and setup the makefile with your compiler.
-
-Wishlist:
-~Produce a "proper" configure script to check for dependencies, create directories, and setup the makefile with your compiler.
+~Change the .ini file interface to use default values for any parameters not defined in the .ini file
+~Allow an option to adi2fft that doesn't give up on a particle that reaches the end of the instrumented region
+~Move the interactive portion of adipark to an input in the .ini file
