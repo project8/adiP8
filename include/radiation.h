@@ -11,6 +11,7 @@ struct t_tl_data
   //parameters necessary for power calculation
   double Zw;//wave impedance =Z0 for TEM, k0/k*Z0 for TE 
   double Zc;//characteristic impedance, only relevant for TEM modes
+  double skinD;//skin depth, m, freq. and temp. dependent
   double C;//capacitance per unit length, only relevant for TEM modes
   double R;//resistance per unit length, only relevant for TEM modes
   double att;//attenuation coefficient

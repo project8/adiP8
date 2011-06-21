@@ -36,9 +36,10 @@
 #define SI2esE  3e9          // converts SI units to CGS unit "esE"
 #define OMEGA0 1.758820150e+11 // nrel electron cyclotron frequency (rad/s) at B=1t,pdg 07
 #define EPS0 8.854187817e-12  //permittivity of free space pdg 10, in F/m
+#define MU0 1.256637061e-6  //permeability of free space pdg 10, in Ohm*s/m
 #define Z0 376.7           //Impedance of free space in Ohms
-#define CU_R 2.15e-9           //Resititivy of Cu @ 80K in Ohm-m 
-#define RM 0.015             //Resititivy of Cu / skin depth @ OMEGA0, Ohms
+#define CU_R 2.15e-9           //Resititivy of Cu @ 80K in Ohm-m from CRC
+#define AL_R 2.45e-9           //Resititivy of Al @ 80K in Ohm-m from CRC
 #define K_BOL 1.3806488e-23     //Boltzam constant, J/K
 
 #define display 0           // output switch mode: 0=nothing, 1=some, 2=all 
