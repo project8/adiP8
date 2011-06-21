@@ -81,6 +81,7 @@ void init_parameters(void)
   sprintf(parameter.name[++para_count], "RAD_SHIFT");
   sprintf(parameter.name[++para_count], "ANTENNA_TEMP");
   sprintf(parameter.name[++para_count], "ANTENNA_POS");
+  sprintf(parameter.name[++para_count], "LEAVE_ANTENNA");
   sprintf(parameter.name[++para_count], "IMPEDANCE");
   sprintf(parameter.name[++para_count], "RAD_ATTEN");
 
@@ -150,6 +151,7 @@ void init_parameters(void)
   parameter.rad_shift = 1;
   parameter.antenna_temp = 0;
   parameter.antenna_pos = +500;
+  parameter.leave_antenna = 0;
   parameter.impedance = 1;
   parameter.rad_atten = 1;
 
@@ -408,6 +410,10 @@ int store_parameter(const char *identifier, double value)
     status = 1;
   } else if (strcmp(identifier, parameter.name[++number]) == 0) {
     parameter.antenna_pos = value;
+    parameter.inited[number] = 1;
+    status = 1;
+  } else if (strcmp(identifier, parameter.name[++number]) == 0) {
+    parameter.leave_antenna = value;
     parameter.inited[number] = 1;
     status = 1;
   } else if (strcmp(identifier, parameter.name[++number]) == 0) {

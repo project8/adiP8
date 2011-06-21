@@ -113,10 +113,8 @@ int main(int argc, char *argv[])
 
       if (init_status > 0) {
         choice = parameter.adip_run_mode;
-        cout << " case is " << choice << endl;
         switch (choice) {
           case 1:
-            cout << "got to here" << endl;
             tracking_loop(parameter_filename);
             break;
           case 2:

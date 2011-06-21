@@ -106,7 +106,7 @@ struct particle_data
 
 };
 
-#define max_parameter 66
+#define max_parameter 67
  
 struct t_parameter{
   int inited[max_parameter+1];
@@ -174,6 +174,7 @@ struct t_parameter{
   int rad_shift;
   double antenna_temp;
   double antenna_pos;
+  int leave_antenna;
   double impedance;
   int rad_atten;
 
