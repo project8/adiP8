@@ -27,8 +27,8 @@ int main(int argc, char **argv)
     while ((c = getopt(argc, argv, "n:")) != -1) {
         switch (c) {
             case 'n':
-            magfield3_set_nmaxmag(strtol(optarg, NULL, 0));
-            break;
+                magfield3_set_nmaxmag(strtol(optarg, NULL, 0));
+                break;
         }
     }
 
@@ -41,11 +41,13 @@ int main(int argc, char **argv)
     len = strlen(inputfile);
 
     if (len >= 4 && !strcmp(inputfile + len - 4, ".dat")) {
-        basename = (char*) malloc(len - 3);
+        basename = (char*) malloc(len + 10 - 3);
         strncpy(basename, inputfile, len - 4);
         basename[len - 4] = '\0';
-    } else
+        strcat(basename, "_mag3parms");
+    } else {
         basename = strdup(inputfile);
+    }
 
     magfield3_set_prefix(basename);
 
