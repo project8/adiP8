@@ -378,7 +378,6 @@ int main(int argc, char *argv[])
           status = calculate_radiation(fi, in_for, dir, x_ant);
         } else { // if we are outside the instrumented region, be careful
           if (parameter.leave_antenna == 1) { //if outside region is on store a 0
-            cout << "Outside antenna..... recording 0" << endl;
             in_for[itf] = 0.;
           } else { //if outside region is off the stop here
             cout << "Warning! Passed Antenna! Exiting Interpolation Now!" << endl;     //passed antenna
@@ -450,7 +449,6 @@ int main(int argc, char *argv[])
           }
         } else { // if we are outside the instrumented region, be careful
           if (parameter.leave_antenna == 1) { //if outside region is on, store a 0
-            cout << "Outside antenna.... recording 0" << endl;
             in_bk[itb] = 0.;
           } else { // if outside region is off then stop here
             cout << "Warning! Passed Antenna! Exiting Interpolation Now!" << endl;     //passed antenna
