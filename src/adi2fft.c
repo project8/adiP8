@@ -584,7 +584,7 @@ int main(int argc, char *argv[])
       fftTree->Branch("pc", &pc, "Hz/D:outr/D:outi/D:fW_f/D:fJ_f/D:fJpHz/D");
       TTree *nfftTree = new TTree(Form("nfft_%d", i), "fft results with noise");
       nfftTree->Branch("npc", &npc, "Hz/D:outr/D:outi/D:fW_f/D:fJ_f/D:fJpHz/D");
-      Double_t delf = 1.0e6 / ti.t;    //now ti.t is max time, in Hz
+      Double_t delf = 1 / anti.t;    //last entry in anti tree is max time (s)
       //calculate power for positive frequencies including 0 and nyquist
       for (int j = 0; j < maxf; j++) {
         //energyf is time-integral square amplitude, total energy at bin f is fJ_f
@@ -733,7 +733,10 @@ int main(int argc, char *argv[])
 int calculate_radiation(INTERINFO ii, double *in, double dir, double d_ant)
 {
   /*
-     <insert doc string here>
+     This function creates the input to the fourier transform, which is an
+     array of voltages as a function of time.  The voltage amplitude depends
+     on the electric field strength of the dominant mode at the position of 
+     the particle and the amount of attenuation along the length of the line. 
    */
   Double_t position[3], velocity[3], omega, phase, atten;
   position[0] = ii.x;
