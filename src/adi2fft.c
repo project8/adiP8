@@ -21,6 +21,7 @@
 #include "TText.h"
 #include "TMath.h"
 #include "TFile.h"
+#include "TVector3.h"
 #include "TNtuple.h"
 #include "TTree.h"
 #include "TRandom3.h"
@@ -38,6 +39,7 @@ typedef struct {
   Long64_t i;
   Double_t t_ant, t_ret, x, y, z, ycen, zcen, rad;
   Double_t vx, vy, vz;
+  Double_t theta;
   Double_t Ef, fW_t, phase, dphdt, omega;
 } INTERINFO;
 int calculate_radiation(INTERINFO ii, double *in, double dir, double d_ant);
@@ -210,9 +212,9 @@ int main(int argc, char *argv[])
     TTree *trackTree = new TTree(Form("track_%d", i), "adipark track results");
     trackTree->Branch("ti", &ti, "t/D:xcen/D:ycen/D:zcen/D:rad/D:vx/D:vy/D:vz/D:ekin/D:eloss/D:b/D:phase/D:omega/D");
     TTree *intFTree = new TTree(Form("interF_%d", i), "forward interpolated track results");
-    intFTree->Branch("fi", &fi, "i/L:t_ant/D:t_ret/D:x/D:y/D:z/D:ycen/D:zcen/D:r/D:vx/D:vy/D:vz/D:Ef/D:fW_t/D:phase/D:dphdt/D:omega/D");
+    intFTree->Branch("fi", &fi, "i/L:t_ant/D:t_ret/D:x/D:y/D:z/D:ycen/D:zcen/D:r/D:vx/D:vy/D:vz/D:theta/D:Ef/D:fW_t/D:phase/D:dphdt/D:omega/D");
     TTree *intBTree = new TTree(Form("interB_%d", i), "backward interpolated track results");
-    intBTree->Branch("bi", &bi, "i/L:t_ant/D:t_ret/D:x/D:y/D:z/D:ycen/D:zcen/D:r/D:vx/D:vy/D:vz/D:Ef/D:fW_t/D:phase/D:dphdt/D:omega/D");
+    intBTree->Branch("bi", &bi, "i/L:t_ant/D:t_ret/D:x/D:y/D:z/D:ycen/D:zcen/D:r/D:vx/D:vy/D:vz/D:theta/D:Ef/D:fW_t/D:phase/D:dphdt/D:omega/D");
     //initialize Tree, fill with "real data" (doubles) 
     TTree *wfTree = new TTree(Form("ant_%d", i), "antenna results with noise");
     wfTree->Branch("anti", &anti, "i/L:t/D:Ef_for/D:Ef_bk/D:nEf/D:fW_t/D:nfW_t/D:sig/D:noise/D:vtot/D");
@@ -371,6 +373,7 @@ int main(int argc, char *argv[])
         fi.vx = inter_V[0] * 1.e-4;     //cm/us
         fi.vy = inter_V[1] * 1.e-4 - inter_R * inter_Om * sin(inter_Phase);
         fi.vz = inter_V[2] * 1.e-4 + inter_R * inter_Om * cos(inter_Phase);
+        fi.theta = TVector3(fi.vy,fi.vz,fi.vx).Theta()*(180./TMath::Pi());
         fi.phase = inter_Phase;
         fi.dphdt = dphdt;       //at inter_T
         fi.omega = inter_Om;    //at for_T
@@ -437,6 +440,8 @@ int main(int argc, char *argv[])
         bi.vx = inter_V[0] * 1.e-4;    //cm/us
         bi.vy = inter_V[1] * 1.e-4 - inter_R * inter_Om * sin(inter_Phase);
         bi.vz = inter_V[2] * 1.e-4 + inter_R * inter_Om * cos(inter_Phase);
+        bi.theta = TVector3(bi.vy,bi.vz,bi.vx).Theta()*(180./TMath::Pi());
+
         bi.phase = inter_Phase;
         bi.dphdt = dphdt;       //at inter_T
         bi.omega = inter_Om;    //at for_T
