@@ -353,7 +353,7 @@ int main(int argc, char *argv[])
         for (int j = 0; j < 3; j++) {
           inter_V[j] = last_simV[j] + dvdt[j] * (for_T - last_simT);
         }
-        if (abs(inter_X[0]) > abs(x_ant)) {
+        if ((abs(inter_X[0]) > abs(x_ant)) && (parameter.leave_antenna != 1)) {
           cout << "Warning! Passed Antenna! Exiting Interpolation Now!" << endl;     //passed antenna
           status = 1;
           break;                //passed antenna
@@ -374,7 +374,18 @@ int main(int argc, char *argv[])
         fi.phase = inter_Phase;
         fi.dphdt = dphdt;       //at inter_T
         fi.omega = inter_Om;    //at for_T
-        status = calculate_radiation(fi, in_for, dir, x_ant);
+        if (abs(inter_X[0]) < abs(x_ant)) {
+          status = calculate_radiation(fi, in_for, dir, x_ant);
+        } else { // if we are outside the instrumented region, be careful
+          if (parameter.leave_antenna == 1) { //if outside region is on store a 0
+            in_for[itf] = 0.;
+          } else { //if outside region is off the stop here
+            cout << "Warning! Passed Antenna! Exiting Interpolation Now!" << endl;     //passed antenna
+            cout << ".............should not have gotten here, should have exited earlier" << endl;
+            status = 1;
+            break;                //passed antenna
+          }
+        }
         fi.Ef = in_for[itf];    //coeff of efield, C*Ohm/s
         fi.fW_t = 1.e+15 / tl_data.Zw * (pow(in_for[itf], 2));  //should have units of fW 
         intFTree->Fill();
@@ -408,7 +419,7 @@ int main(int argc, char *argv[])
         for (int j = 0; j < 3; j++) {
           inter_V[j] = last_simV[j] + dvdt[j] * (bk_T - last_simT);
         }
-        if (abs(inter_X[0]) > abs(x_ant)) {
+        if ((abs(inter_X[0]) > abs(x_ant)) && (parameter.leave_antenna != 1)) {
           cout << "Warning! Passed Antenna! Exiting Interpolation Now!" << endl;      //passed antenna
           status = 1;
           break;                //passed antenna
@@ -430,10 +441,21 @@ int main(int argc, char *argv[])
         bi.dphdt = dphdt;       //at inter_T
         bi.omega = inter_Om;    //at for_T
         //bi.omega = inter_Om/(1+dir*inter_V[0]*1.e-4/c); 
-        if (refCo == 0) {
-          status = calculate_radiation(bi, in_bk, -dir, x_ant);
-        } else {
-          status = calculate_radiation(bi, in_bk, -dir, 3 * x_ant);
+        if (abs(inter_X[0]) < abs(x_ant)) {
+          if (refCo == 0) {
+            status = calculate_radiation(bi, in_bk, -dir, x_ant);
+          } else {
+            status = calculate_radiation(bi, in_bk, -dir, 3 * x_ant);
+          }
+        } else { // if we are outside the instrumented region, be careful
+          if (parameter.leave_antenna == 1) { //if outside region is on, store a 0
+            in_bk[itb] = 0.;
+          } else { // if outside region is off then stop here
+            cout << "Warning! Passed Antenna! Exiting Interpolation Now!" << endl;     //passed antenna
+            cout << ".............should not have gotten here, should have exited earlier" << endl;
+            status = 1;
+            break;                //passed antenna
+          }
         }
         bi.Ef = in_bk[itb];     //coeff of efield,volts 
         bi.fW_t = 1.e+15 / tl_data.Zw * (pow(in_bk[itb], 2));    //should have units of fW 
