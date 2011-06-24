@@ -16,6 +16,7 @@ struct t_tl_data
   double R;//resistance per unit length, only relevant for TEM modes
   double att;//attenuation coefficient
   double vg;//group velocity
+  double vp;//phase velocity
 };
 extern struct t_tl_data tl_data;
 
@@ -25,6 +26,7 @@ void calculate_tl_parameters();
 
 void init_tl_data(bool offset);
 int get_tl_efield(double *p, double *efield);
+
 void init_pp_data();
 int get_pp_efield(double *pos, double *efield);
 
@@ -32,9 +34,11 @@ void init_coax_data();
 int get_coax_efield(double *pos, double *efield);
 
 void init_sq_wg_data(double k0);
+void print_sq_wg_power(double k0);
 int get_sq_wg_efield(double *pos, double *efield);
 
 void init_circ_wg_data(double k0);
-int get_circ_wg_efield(double phase, double *pos, double *efield);
+void print_circ_wg_power(double k0);
+int get_circ_wg_efield(double *pos, double *efield);
 
 int get_circ_cavity_efield(double phase, double *pos, double *efield);

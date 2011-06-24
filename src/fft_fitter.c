@@ -136,49 +136,41 @@ void fit_fft_to_lorentian(double *pars, double *f, double *pow, int N, int j)
 
 }
 
-void fit_fft_to_sinc(double *pars, double *f, double *pow, double f0, int j)
+void fit_fft_to_sinc(double *pars, double *f, double *pow, int nP, double f0, int j)
 {
   cout << "****************************************************** " << endl;
   cout << "Fitting Power Spectrum P(f) to Sinc2(f) Function: " << endl;
   //appropriate for rectangular windowing
   //find max (initial guess at mean freq)
-  int imax = 0;
-  double delf = f[1];
-  imax = f0/delf; 
+  int imax = nP/2;
+  double delf = f[1]-f[0];
   //to do the fit we will generate a TGraph and fit that
-  //OK, let's generate a pointer to a subarray of OUT
-  const int nP = 18;
-  double *subout = &pow[imax - nP / 2];
-  double *subx = &f[imax - nP / 2];
   //create error bars
   double erY[nP];
   for (int i = 0; i < nP; i++) {
     erY[i] = pow[imax] * .01;
   }
 
-  //  cout << iwid << " " << subout[0] << " " << subout[3*iwid] << endl;
-  //cout << "Nsamples " << N << endl;
-
-  TGraphErrors *data = new TGraphErrors(nP, subx, subout, 0, erY);
+  TGraphErrors *data = new TGraphErrors(nP, f, pow, 0, erY);
   data->SetName(Form("sincFit%i", j));
 
   //for large sampling rate
-  TF1 *sinc = new TF1("sinc", "[2]*TMath::Sin(2*TMath::Pi()*(x-[0])*[1]/2)^2/(2*TMath::Pi()*(x-[0])*[1]/2)^2", subx[0], subx[nP - 1]);
-  sinc->SetParameters(f0, 1 / f[1], pow[imax]);
-  //cout << "Initializing to mean: " << f[imax] << " duration: " << 1 / f[1] << " amp: " << pow[imax] << endl;
-  sinc->SetParLimits(0, subx[0], subx[nP - 1]);
-  sinc->SetParLimits(1, 0, 1000 / f[1]);
+  TF1 *sinc = new TF1("sinc", "[2]*TMath::Sin(2*TMath::Pi()*(x-[0])*[1]/2)^2/(2*TMath::Pi()*(x-[0])*[1]/2)^2", f[0], f[nP - 1]);
+  sinc->SetParameters(f0, 1 / delf, pow[imax]);
+  //cout << "Initializing to mean: " << f0 << " duration: " << 1 / delf << " amp: " << pow[imax] << endl;
+  sinc->SetParLimits(0, f[0], f[nP - 1]);
+  sinc->SetParLimits(1, 0, 1000 / delf);
   sinc->SetParNames("mean", "duration", "amplitude");
 
   sinc->SetLineColor(2);
   sinc->SetNpx(1000);
   gStyle->SetOptFit(1111);
-  int status = data->Fit(sinc, "q", "", subx[0], subx[nP - 1]);
+  int status = data->Fit(sinc, "q", "", f[0], f[nP - 1]);
   if (!status == 0) {
-    status = data->Fit(sinc, "Mq", "", subx[0], subx[nP - 1]);
+    status = data->Fit(sinc, "Mq", "", f[0], f[nP - 1]);
   }
   //data->Draw("Ap");
-  double integral = sinc->Integral(subx[0], subx[nP - 1]);
+  double integral = sinc->Integral(f[0], f[nP - 1]);
   //make sure integral and frequency have same units.
 
   //OK, great, let's try to return the fit parameters
@@ -266,13 +258,12 @@ void fit_fft_to_sinc_2nd(double *pars, double *f, double *pow, int N, int j)
   data->Write();
 }
 
-void fit_pow_to_cos(double *pars, double *pow_t, double tstep, double f0, int j)
+void fit_pow_to_cos(double *pars, double *pow_t, double tstep, int nP, double f0, int j)
 {
   cout << "****************************************************** " << endl;
   cout << "Fitting Instantaneous Power P(t) to cos2(t)" << endl;
   //appropriate for single harmonic
   //find max in p(t) (initial guess at amp)
-  int nP = 50;
   double t[nP];
   double duration = tstep*nP;
   int imax_t = 0;

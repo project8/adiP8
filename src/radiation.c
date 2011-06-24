@@ -32,10 +32,12 @@ void init_data()
   tl_data.C = 0;                //capacitance
   tl_data.Zc = tl_data.Zw;      //characteristic imp
   tl_data.vg = Clight * M2CM / S2US;//group velocity is speed of light
+  tl_data.vp = Clight * M2CM / S2US;//phase velocity is speed of light
   tl_data.att = 0;              //attenuation coefficient
   cout << "Default Wave Impedance : " << tl_data.Zw << " Ohms" << endl;
   cout << "Default Characteristic Impedance : " << tl_data.Zc << " Ohms" << endl;
-  cout << "Default Group velocity is speed of light: " << tl_data.vg << " cm/us " << endl;
+  cout << "Default Group and Phase velocities are the speed of light: ";
+  cout  << tl_data.vg << " cm/us " << endl;
 }
 
 void init_tl_data(bool offset)
@@ -196,6 +198,7 @@ void init_sq_wg_data(double k0)
     betaj = sqrt(pow(k0, 2) - pow(kj, 2));
     tl_data.Zw = k0 * Z0 / betaj;	//in Ohm
     tl_data.vg = Clight * M2CM / S2US * betaj / k0;	//group velocity, cm/us
+    tl_data.vp = Clight * M2CM / S2US * k0 / betaj;	//phase velocity, cm/us
     tl_data.att = Rm/tl_data.y1/tl_data.z1/betaj/k0/Z0*(2*tl_data.z1*kj*kj+tl_data.y1*k0*k0);
   }
   cout << endl << endl << "Aluminum Square Waveguide with largest dim: ";
@@ -205,9 +208,23 @@ void init_sq_wg_data(double k0)
   cout << " Skin Depth " << tl_data.skinD*1e6 << " micron " << endl;
   cout << " SqWg Attenuation: " << tl_data.att << " Nepers per cm" << endl;
   cout << " SqWg Group Velocity: " << tl_data.vg << " cm/us" << endl;
-
+  cout << " SqWg Phase Velocity: " << tl_data.vp << " cm/us" << endl;
+  print_sq_wg_power(k0);
 }
-
+void print_sq_wg_power(double k0)
+{
+  //returns the time-average power radiated into the TE_10 
+  //mode of an infinite square waveguide 
+  // from an electron at the center of the guide with:
+  double R = 0.05;//cm, cyclotron radius
+  //k0 = omega_cyclotron/c;//angular wavenumber of free-space cyclotron radiatin
+  //kj is angular wavenumber of cutoff frequency for TE10 mode
+  double kj = M_PI / tl_data.y1;
+  double betaj = sqrt(pow(k0, 2) - pow(kj, 2));//angular wavenumber of propagating radiation
+  double c = Clight * M2CM ;//cm/s
+  double power = Z0 * pow(Echarge*R*c*sin(M_PI/2),2) * pow(k0,3)/(4 * betaj * tl_data.z1 * tl_data.y1);
+  cout << "Power at center of WG: " << 1e15 * power << " fW " << endl;
+}
 int get_sq_wg_efield(double *pos, double *efield)
 {
   //function returns the TE_10 efield inside an infinite square waveguide 
@@ -235,7 +252,7 @@ int get_sq_wg_efield(double *pos, double *efield)
 void init_circ_wg_data(double k0)
 {
   //Circular Waveguide with TE_11 mode propagating
-  tl_data.rO = 1.0;             //cm, radius of wg, >wavelength/3.41 
+  tl_data.rO = 0.4;             //cm, radius of wg, >wavelength/3.41 
   tl_data.skinD = sqrt(2*AL_R/OMEGA0/MU0);//m
   double Rm = AL_R/tl_data.skinD;//Ohms, for Aluminum at 27 GHz and 80 K
   //Warning!  Wave imp. for TE modes freq dep, not implemented properly
@@ -250,6 +267,7 @@ void init_circ_wg_data(double k0)
     betaj = sqrt(pow(k0, 2) - pow(kj, 2));
     tl_data.Zw = k0 * Z0 / betaj;	//in Ohms
     tl_data.vg = Clight * M2CM / S2US * betaj / k0;	//group velocity, cm/us
+    tl_data.vp = Clight * M2CM / S2US * k0 / betaj;	//phase velocity, cm/us
     tl_data.att = Rm/tl_data.rO/Z0*sqrt(1-pow(kj/k0,2))*(pow(kj/k0, 2)+1/(p1*p1-1));
   }
   cout << endl << endl << "Circ Waveguide with Radius: " << tl_data.rO << " cm" << endl;
@@ -258,9 +276,29 @@ void init_circ_wg_data(double k0)
   cout << " Skin Depth " << tl_data.skinD*1e6 << " micron " << endl;
   cout << " Circ WG Attenuation: " << tl_data.att << " Nepers per cm" << endl;
   cout << " Circ WG Group Velocity: " << tl_data.vg << " cm/us" << endl;
+  cout << " Circ WG Phase Velocity: " << tl_data.vp << " cm/us" << endl;
+  print_circ_wg_power(k0);
 }
 
-int get_circ_wg_efield(double phase, double *pos, double *efield)
+void print_circ_wg_power(double k0)
+{
+  //returns the time-average power radiated into the TE_11 
+  //mode of an infinite circ. waveguide 
+  // from an electron at the center of the guide with:
+  double R = 0.05;//cm, cyclotron radius
+  double c = Clight * M2CM ;//cm/s
+  double p1 = 1.841;            //1st zero of the derivate of bessel function
+  //k0 = omega_cyclotron/c;//angular wavenumber of free-space cyclotron radiatin
+  //kj is angular wavenumber for cutoff frequency for TE11
+  double kj = p1 / tl_data.rO;
+  double n1 = tl_data.rO / sqrt(4 * M_PI)*sqrt(1 - 1/p1/p1)*TMath::BesselJ1(p1); 
+  double Jp = kj * TMath::BesselJ0(kj * R) - TMath::BesselJ1(kj * R) / R;
+  double power = tl_data.Zw / 4 * pow( Echarge * R * k0 * c / n1 * Jp,2);
+  cout << "Power at center of WG: " << power*1e15 << " fW " << endl;
+
+}
+
+int get_circ_wg_efield(double *pos, double *efield)
 {
   //returns the TE_11 efield inside an infinite circ. waveguide 
   //efield normalized the jackson way with 1/cm units
@@ -275,8 +313,8 @@ int get_circ_wg_efield(double phase, double *pos, double *efield)
   //Bessel functions are constant if the orbit is centered around cavity axis
   double J1 = TMath::BesselJ1(kj * radius);//this term cancels in dot product w/ vel
   double Jp = kj * TMath::BesselJ0(kj * radius) - TMath::BesselJ1(kj * radius) / radius;
-  double N1 = tl_data.rO / sqrt(4 * M_PI)*sqrt(1 - 1/p1/p1)*TMath::BesselJ1(p1); 
-  double e_amp = sqrt(2) / kj / N1;//= 5.574, dimensionless
+  double N1 = 1/(tl_data.rO / sqrt(4 * M_PI)*sqrt(1 - 1/p1/p1)*TMath::BesselJ1(p1)); 
+  double e_amp = sqrt(2) / kj * N1;//= 5.574, dimensionless
   int status = 0;
 
   if (radius > tl_data.rO) {
@@ -284,8 +322,14 @@ int get_circ_wg_efield(double phase, double *pos, double *efield)
     status = 1;
   }
   efield[0] = 0;                //only true for TE mode
-  efield[1] = e_amp * (J1 / radius * sin(phase) * cos(phi) + kj * Jp * cos(phase) * sin(phi));
-  efield[2] = e_amp * (J1 / radius * sin(phase) * sin(phi) - kj * Jp * cos(phase) * cos(phi));
+  efield[1] = e_amp * (J1 / radius * cos(phi) * sin(phi) - kj * Jp * sin(phi) * cos(phi));
+  efield[2] = e_amp * (J1 / radius * sin(phi) * sin(phi) + kj * Jp * cos(phi) * cos(phi));
+  if (radius == 0) {
+    Jp = kj/2; 
+    phi = 0;
+    efield[1] = e_amp * (kj/2 * cos(phi) * sin(phi) - kj * Jp * sin(phi) * cos(phi));
+    efield[2] = e_amp * (kj/2 * sin(phi) * sin(phi) + kj * Jp * cos(phi) * cos(phi));
+  }
 
   return status;
 }

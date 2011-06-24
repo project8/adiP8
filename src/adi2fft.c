@@ -673,25 +673,25 @@ int main(int argc, char *argv[])
           nfftTree->Fill();
         }
       }
-      double f0 = h1->GetBinCenter(h1->GetMaximumBin())*1.e9;
       //cout << "Trees filled " << endl;
       //now make arrays and do fitting
-      double *time_array = (double *) fftw_malloc(sizeof(double) * N);
-      double *powert = (double *) fftw_malloc(sizeof(double) * N);
-      double *freq_array = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
-      double *PSD = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
-      for (int k = 0; k < max; k++) {
+      int nP = 50; //number of time points to include in fits
+      double powert[nP];
+      double PSD[nP];
+      double freq_array[nP];
+      int f0bin = h1->GetMaximumBin();//find bin of max in PS
+      double f0 = h1->GetBinCenter(f0bin)*1.e9;//find freq of max of PS
+      int minBin = int(f0bin-nP/2);
+      for (int k = 0; k < nP; k++) {
         powert[k] = 1.e15 / tl_data.Zw * (pow(in_for[k], 2));    //should have units of fW 
-        time_array[k] = (k + 1) * tstep * US2S;    //convert to s
-      }
-      for (int k = 0; k < maxf; k++) {
-        freq_array[k] = k * delf;
-        PSD[k] = ESD[k] / max / tstep / US2S;    //should have units of fW per Hz
+        PSD[k] = h1->GetBinContent(minBin+k) * max * tstep * US2S;    //should have units of fW per Hz
+        freq_array[k] = h1->GetBinCenter(minBin+k)*1.e9;
       }
 
+
       cout << "fitting " << endl;
-      fit_pow_to_cos(pars, powert, tstep * US2S, f0, i);
-      fit_fft_to_sinc(pars, freq_array, PSD, f0, i);
+      fit_pow_to_cos(pars, powert, tstep * US2S, nP, f0, i);
+      fit_fft_to_sinc(pars, freq_array, PSD, nP, f0, i);
 
       fftTree->Write();
       h1->Write();
@@ -699,10 +699,6 @@ int main(int argc, char *argv[])
         nfftTree->Write();
       }
 
-      fftw_free(time_array);
-      fftw_free(powert);
-      fftw_free(freq_array);
-      fftw_free(PSD);
     }
     ntarray[0] = i;
     ntarray[1] = repeat;
@@ -794,7 +790,7 @@ int calculate_radiation(INTERINFO ii, double *in, double dir, double d_ant)
       in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;
     case 4:                      //circular waveguide
-      status = get_circ_wg_efield(phase, position, efield);
+      status = get_circ_wg_efield(position, efield);
       in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;
     case 5:                      //parallel plates
