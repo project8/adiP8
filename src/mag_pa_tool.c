@@ -314,13 +314,17 @@ void b_toroid(double *position, double *bvec)
 
 void get_bfield_mag3(double *pos_ap, double *bvec_ap)
 {
+  if (strcmp(magfield3_get_magcoil(), "magcoil.dat") == 0) {
+    //coil files prefixes haven't been set yet
+    char mag_filename[255];       // filename for magsource data
+    strcpy(mag_filename, parameter.filename);
+    strcat(mag_filename, "_mag3parms"); // data input from soucepoints file
+    magfield3_set_prefix(mag_filename);
+    cout << "Setting magfield3 prefix to " << mag_filename << endl;
+  } 
   //convert from cm to m, rotate x to z, use components 1-3
   double pos_m3[4];
   double bvec_m3[4];
-  char mag_filename[255];       // filename for magsource data
-  strcpy(mag_filename, parameter.filename);
-  strcat(mag_filename, "_mag3parms"); // data input from soucepoints file
-  magfield3_set_prefix(mag_filename);
 
   pos_m3[1] = pos_ap[1]/100.0;
   pos_m3[2] = pos_ap[2]/100.0;
