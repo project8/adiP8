@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
     }
     //bk_T is retarted time (emission tim at particle) for backward or reflected wave
     //if reflected, will add delay of n_del to antenna
-    Int_t n_del = 2 * ta0 / tstep;    //number of tsteps in delay, about 80 
+    Int_t n_del = 2 * ta0 / tstep;    //number of tsteps in delay
     Double_t t_del = 2 * ta0 - n_del * tstep;
     if (refCo == 0) {
       //if no reflection, no extra delay
@@ -444,11 +444,7 @@ int main(int argc, char *argv[])
         bi.omega = inter_Om;    //at for_T
         //bi.omega = inter_Om/(1+dir*inter_V[0]*1.e-4/c); 
         if (abs(inter_X[0]) < abs(x_ant)) {
-          if (refCo == 0) {
-            status = calculate_radiation(bi, -dir, x_ant);
-          } else {
-            status = calculate_radiation(bi, -dir, 3 * x_ant);
-          }
+          status = calculate_radiation(bi, -dir, -x_ant);
         } else { // if we are outside the instrumented region, be careful
           if (parameter.leave_antenna == 1) { //if outside region is on, store a 0
             bi.Ef = 0.;
@@ -572,13 +568,14 @@ int main(int argc, char *argv[])
         anti.Ef_for = in_for[it]; //coeff of efield, volts
         anti.Ef_bk = 0;
         if (n_del <= it) {
-          anti.Ef_bk = refCo * in_bk[it - n_del];  //coeff of efield, volts
+          anti.Ef_bk = refCo * in_bk[it - n_del] * exp(-tl_data.att * 2 * x_ant );  //coeff of efield, volts
         }
         //use characteristic impedance to get voltage at antenna
         anti.sig = EF2SIG * in_for[it];     //in Volts
         if ((!(impedance == 1)) && it >= n_del) {
-          anti.sig += EF2SIG * refCo * in_bk[it - n_del];     
-          in_for[it] += refCo * in_bk[it - n_del];
+          //reflected from end of antenna
+          anti.sig += EF2SIG * refCo * in_bk[it - n_del] * exp(-tl_data.att * 2 * x_ant );     
+          in_for[it] += refCo * in_bk[it - n_del] * exp(-tl_data.att * 2 * x_ant );     
         }
         anti.noise = r3->Gaus(0, TMath::Sqrt(kT / 2 / tstep / US2S * tl_data.Zc) );    //in Volts 
         anti.vtot = anti.sig + anti.noise;  //volts
@@ -738,8 +735,8 @@ int main(int argc, char *argv[])
 int calculate_radiation(INTERINFO &ii, double dir, double d_ant)
 {
   /*
-     This function creates the input to the fourier transform, which is an
-     array of voltages as a function of time.  The voltage amplitude depends
+     This function calculates the input to the fourier transform, which is an
+     array of Ef strengths as a function of time.  The signal voltage amplitude depends
      on the electric field strength of the dominant mode at the position of 
      the particle and the amount of attenuation along the length of the line. 
    */
