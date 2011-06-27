@@ -9,7 +9,7 @@
 #include "TROOT.h"
 using namespace std;
 
-void fit_fft_to_gaussian(double *pars, double *f, double *out, int N)
+void fit_fft_to_gaussian(float *pars, double *f, double *out, int N)
 {
   //fit to gaussian, appropriate for non-rectangular windowing
   //find max (initial guess at Gaussian center)
@@ -62,7 +62,7 @@ void fit_fft_to_gaussian(double *pars, double *f, double *out, int N)
   data->Write();
 }
 
-void fit_fft_to_lorentian(double *pars, double *f, double *pow, int N, int j)
+void fit_fft_to_lorentian(float *pars, double *f, double *pow, int N, int j)
 {
   cout << "****************************************************** " << endl;
   cout << "Fitting Power Spectrum P(f) to Lorentzian Function: " << endl;
@@ -136,7 +136,7 @@ void fit_fft_to_lorentian(double *pars, double *f, double *pow, int N, int j)
 
 }
 
-void fit_fft_to_sinc(double *pars, double *f, double *pow, int nP, double f0, int j)
+void fit_fft_to_sinc(float *pars, double *f, double *pow, int nP, double f0, int j)
 {
   cout << "****************************************************** " << endl;
   cout << "Fitting Power Spectrum P(f) to Sinc2(f) Function: " << endl;
@@ -191,7 +191,7 @@ void fit_fft_to_sinc(double *pars, double *f, double *pow, int nP, double f0, in
   cout << "****************************************************** " << endl;
 }
 
-void fit_fft_to_sinc_2nd(double *pars, double *f, double *pow, int N, int j)
+void fit_fft_to_sinc_2nd(float *pars, double *f, double *pow, int N, int j)
 {
   //fit 2nd harmonic to sinc^2, appropriate for rectangular windowing
   //find max (initial guess at mean freq)
@@ -258,7 +258,7 @@ void fit_fft_to_sinc_2nd(double *pars, double *f, double *pow, int N, int j)
   data->Write();
 }
 
-void fit_pow_to_cos(double *pars, double *pow_t, double tstep, int nP, double f0, int j)
+void fit_pow_to_cos(float *pars, double *pow_t, double tstep, int nP, double f0, int j)
 {
   cout << "****************************************************** " << endl;
   cout << "Fitting Instantaneous Power P(t) to cos2(t)" << endl;

@@ -42,7 +42,7 @@ typedef struct {
   Double_t theta;
   Double_t Ef, fW_t, phase, dphdt, omega;
 } INTERINFO;
-int calculate_radiation(INTERINFO ii, double *in, double dir, double d_ant);
+int calculate_radiation(INTERINFO &ii, double dir, double d_ant);
 
 int main(int argc, char *argv[])
 {
@@ -143,9 +143,9 @@ int main(int argc, char *argv[])
   gRandom = r3;
   double kT = (parameter.antenna_temp) * K_BOL;    //J, T=35K, amplifier Teff = 25 K
 
-  TNtuple *runcard = new TNtuple("runcard", "run parameters", "i:repeat:xi:yi:zi:ekin:thetai:phii:mass:charge:phasei:nscatters:n_temp:imp:x_ant:t_del:atten:mean:duration:height:ta_pow:emean:eduration:eheight:status");
-  float ntarray[25];
-  double pars[7];
+  TNtuple *runcard = new TNtuple("runcard", "run parameters", "i:repeat:xi:yi:zi:ekin:thetai:phii:mass:charge:phasei:nscatters:n_temp:imp:x_ant:t_del:atten");
+  TNtuple *fitcard = new TNtuple("fitcard", "fit parameters", "mean:duration:height:ta_pow:emean:eduration:eheight:status");
+  float ntarray[18];
 
   //set up for fourier transform
   int N = parameter.fft_max_npts;
@@ -215,20 +215,17 @@ int main(int argc, char *argv[])
     intFTree->Branch("fi", &fi, "i/L:t_ant/D:t_ret/D:x/D:y/D:z/D:ycen/D:zcen/D:r/D:vx/D:vy/D:vz/D:theta/D:Ef/D:fW_t/D:phase/D:dphdt/D:omega/D");
     TTree *intBTree = new TTree(Form("interB_%d", i), "backward interpolated track results");
     intBTree->Branch("bi", &bi, "i/L:t_ant/D:t_ret/D:x/D:y/D:z/D:ycen/D:zcen/D:r/D:vx/D:vy/D:vz/D:theta/D:Ef/D:fW_t/D:phase/D:dphdt/D:omega/D");
-    //initialize Tree, fill with "real data" (doubles) 
-    TTree *wfTree = new TTree(Form("ant_%d", i), "antenna results with noise");
-    wfTree->Branch("anti", &anti, "i/L:t/D:Ef_for/D:Ef_bk/D:nEf/D:fW_t/D:nfW_t/D:sig/D:noise/D:vtot/D");
 
     int status = 0;
     //initialize fft and power at antenna
     double *in_for, *in_bk, *in_n;
-    in_for = (double *) fftw_malloc(sizeof(double) * N);
-    in_bk = (double *) fftw_malloc(sizeof(double) * N);
     fftw_complex *out;
     fftw_complex *out_n;
     fftw_plan p;
     double *powerf, *npowerf;
     if (transform) {
+      in_for = (double *) fftw_malloc(sizeof(double) * N);
+      in_bk = (double *) fftw_malloc(sizeof(double) * N);
       out = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * N);
       powerf = (double *) fftw_malloc(sizeof(double) * (N / 2 + 1));
       if (transNoise) {
@@ -376,10 +373,10 @@ int main(int argc, char *argv[])
         fi.dphdt = dphdt;       //at inter_T
         fi.omega = inter_Om;    //at for_T
         if (abs(inter_X[0]) < abs(x_ant)) {
-          status = calculate_radiation(fi, in_for, dir, x_ant);
+          status = calculate_radiation(fi, dir, x_ant);
         } else { // if we are outside the instrumented region, be careful
           if (parameter.leave_antenna == 1) { //if outside region is on store a 0
-            in_for[itf] = 0.;
+            fi.Ef = 0.;
           } else { //if outside region is off the stop here
             cout << "Warning! Passed Antenna! Exiting Interpolation Now!" << endl;     //passed antenna
             cout << ".............should not have gotten here, should have exited earlier" << endl;
@@ -387,8 +384,10 @@ int main(int argc, char *argv[])
             break;                //passed antenna
           }
         }
-        fi.Ef = in_for[itf];    //coeff of efield, C*Ohm/s
-        fi.fW_t = 1.e+15 / tl_data.Zw * (pow(in_for[itf], 2));  //should have units of fW 
+        if ( transform ) {
+          in_for[itf] = fi.Ef;    //coeff of efield, C*Ohm/s
+        }
+        fi.fW_t = 1.e+15 / tl_data.Zw * (pow(fi.Ef, 2));  //should have units of fW 
         intFTree->Fill();
         itf++;
         inter_T = (itf + 1) * tstep;
@@ -446,13 +445,13 @@ int main(int argc, char *argv[])
         //bi.omega = inter_Om/(1+dir*inter_V[0]*1.e-4/c); 
         if (abs(inter_X[0]) < abs(x_ant)) {
           if (refCo == 0) {
-            status = calculate_radiation(bi, in_bk, -dir, x_ant);
+            status = calculate_radiation(bi, -dir, x_ant);
           } else {
-            status = calculate_radiation(bi, in_bk, -dir, 3 * x_ant);
+            status = calculate_radiation(bi, -dir, 3 * x_ant);
           }
         } else { // if we are outside the instrumented region, be careful
           if (parameter.leave_antenna == 1) { //if outside region is on, store a 0
-            in_bk[itb] = 0.;
+            bi.Ef = 0.;
           } else { // if outside region is off then stop here
             cout << "Warning! Passed Antenna! Exiting Interpolation Now!" << endl;     //passed antenna
             cout << ".............should not have gotten here, should have exited earlier" << endl;
@@ -460,8 +459,10 @@ int main(int argc, char *argv[])
             break;                //passed antenna
           }
         }
-        bi.Ef = in_bk[itb];     //coeff of efield,volts 
-        bi.fW_t = 1.e+15 / tl_data.Zw * (pow(in_bk[itb], 2));    //should have units of fW 
+        if ( transform ) {
+          in_bk[itb] = bi.Ef;     //coeff of efield,volts 
+        }
+        bi.fW_t = 1.e+15 / tl_data.Zw * (pow(bi.Ef, 2));    //should have units of fW 
         intBTree->Fill();
         itb++;
         inter_T = (itb + 1) * tstep;
@@ -554,40 +555,45 @@ int main(int argc, char *argv[])
     intBTree->Write();
     trackTree->Write();
     trackfile.close();
-    Long64_t it = TMath::Min(itf, itb);     //max time points
-    Long64_t max = TMath::Min(Long64_t(N), it);  //max time points
-    Long64_t maxf = floor(max / 2) + 1;        //max freq points
-    inter_T = tstep;
-    for (it = 0; it < max; it++) {
-      //save tree at antenna with noise
-      anti.i = it;
-      anti.t = inter_T*US2S;//convert to seconds
-      anti.Ef_for = in_for[it]; //coeff of efield, volts
-      anti.Ef_bk = 0;
-      if (n_del <= it) {
-        anti.Ef_bk = refCo * in_bk[it - n_del];  //coeff of efield, volts
-      }
-      //use characteristic impedance to get voltage at antenna
-      anti.sig = EF2SIG * in_for[it];     //in Volts
-      if ((!(impedance == 1)) && it >= n_del) {
-        anti.sig += EF2SIG * refCo * in_bk[it - n_del];     
-        in_for[it] += refCo * in_bk[it - n_del];
-      }
-      anti.noise = r3->Gaus(0, TMath::Sqrt(kT / 2 / tstep / US2S * tl_data.Zc) );    //in Volts 
-      anti.vtot = anti.sig + anti.noise;  //volts
-      anti.nEf = SIG2EF * anti.vtot;    //Volts
-      if (transNoise) {
-        in_n[it] = anti.nEf;
-      }
-      anti.fW_t = pow(anti.sig, 2) / tl_data.Zc * 1.e+15;     //units of fW 
-      anti.nfW_t = pow(anti.vtot, 2) / tl_data.Zc * 1.e+15;   //units of fW 
-      wfTree->Fill();
-      //finished with antenna data
-      inter_T = (it + 2) * tstep;
-    }
-    wfTree->Write();
-    //3- fourier transform signal at antenna, in_for[] is electric field amplitude
+    
+    //now create time series at antenna and transform
     if (transform) {
+      //initialize Tree, fill with "real data" (doubles) 
+      TTree *wfTree = new TTree(Form("ant_%d", i), "antenna results with noise");
+      wfTree->Branch("anti", &anti, "i/L:t/D:Ef_for/D:Ef_bk/D:nEf/D:fW_t/D:nfW_t/D:sig/D:noise/D:vtot/D");
+      Long64_t it = TMath::Min(itf, itb);     //max time points
+      Long64_t max = TMath::Min(Long64_t(N), it);  //max time points
+      Long64_t maxf = floor(max / 2) + 1;        //max freq points
+      inter_T = tstep;
+      for (it = 0; it < max; it++) {
+        //save tree at antenna with noise
+        anti.i = it;
+        anti.t = inter_T*US2S;//convert to seconds
+        anti.Ef_for = in_for[it]; //coeff of efield, volts
+        anti.Ef_bk = 0;
+        if (n_del <= it) {
+          anti.Ef_bk = refCo * in_bk[it - n_del];  //coeff of efield, volts
+        }
+        //use characteristic impedance to get voltage at antenna
+        anti.sig = EF2SIG * in_for[it];     //in Volts
+        if ((!(impedance == 1)) && it >= n_del) {
+          anti.sig += EF2SIG * refCo * in_bk[it - n_del];     
+          in_for[it] += refCo * in_bk[it - n_del];
+        }
+        anti.noise = r3->Gaus(0, TMath::Sqrt(kT / 2 / tstep / US2S * tl_data.Zc) );    //in Volts 
+        anti.vtot = anti.sig + anti.noise;  //volts
+        anti.nEf = SIG2EF * anti.vtot;    //Volts
+        if (transNoise) {
+          in_n[it] = anti.nEf;
+        }
+        anti.fW_t = pow(anti.sig, 2) / tl_data.Zc * 1.e+15;     //units of fW 
+        anti.nfW_t = pow(anti.vtot, 2) / tl_data.Zc * 1.e+15;   //units of fW 
+        wfTree->Fill();
+        //finished with antenna data
+        inter_T = (it + 2) * tstep;
+      }
+      wfTree->Write();
+      //3- fourier transform signal at antenna, in_for[] is electric field amplitude
       cout << "done making time series at trackfile line " << iline << " t=" << inter_T << endl;
       p = fftw_plan_dft_r2c_1d(max, in_for, out, FFTW_ESTIMATE);
       cout << "executing fft for particle " << i << " with points " << max << endl;
@@ -658,7 +664,8 @@ int main(int argc, char *argv[])
         }
       }
       //cout << "Trees filled " << endl;
-      //now make arrays and do fitting
+      //now fit to subset of data
+      float pars[7];
       int nP = 50; //number of time points to include in fits
       double powert[nP];
       double PSD[nP];
@@ -676,6 +683,7 @@ int main(int argc, char *argv[])
       cout << "fitting " << endl;
       fit_pow_to_cos(pars, powert, tstep * US2S, nP, f0, i);
       fit_fft_to_sinc(pars, freq_array, PSD, nP, f0, i);
+      fitcard->Fill(pars);//store sinc fit pars
 
       fftTree->Write();
       h1->Write();
@@ -701,26 +709,16 @@ int main(int argc, char *argv[])
     ntarray[14] = x_ant;
     ntarray[15] = n_del * tstep;
     ntarray[16] = tl_data.att;
-    if (transform) {
-      ntarray[17] = pars[0];
-      ntarray[18] = pars[1];
-      ntarray[19] = pars[2];
-      ntarray[20] = pars[3];
-      ntarray[21] = pars[4];
-      ntarray[22] = pars[5];
-      ntarray[23] = pars[6];
-      ntarray[24] = pars[7];
-    }
     runcard->Fill(ntarray);
     cout << "done w/ particle " << i << endl;
 
-    if (transNoise) {
-      fftw_destroy_plan(p);
+    if ( transform ) {
       fftw_free(in_for);
       fftw_free(in_bk);
+      fftw_destroy_plan(p);
       fftw_free(out);
       fftw_free(powerf);
-      if (transNoise) {
+      if ( transNoise ) {
         fftw_free(in_n);
         fftw_free(out_n);
         fftw_free(npowerf);
@@ -728,14 +726,16 @@ int main(int argc, char *argv[])
     }
     i++;
   }
-
+  if ( transform ) {
+    fitcard->Write();
+  }
   runcard->Write();
   tfout->Close();
 
 }
 
 
-int calculate_radiation(INTERINFO ii, double *in, double dir, double d_ant)
+int calculate_radiation(INTERINFO &ii, double dir, double d_ant)
 {
   /*
      This function creates the input to the fourier transform, which is an
@@ -753,39 +753,38 @@ int calculate_radiation(INTERINFO ii, double *in, double dir, double d_ant)
   omega = ii.omega;
   phase = ii.phase;
   atten = tl_data.att;
-  Long64_t it = ii.i;
   int status = 0;
   double efield[3];
   switch (parameter.rad_calc_mode) {
     case 0:
-      in[it] = cos(phase) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = cos(phase) * exp(-atten * abs(d_ant - position[0]));
       break;
     case 1:
-      in[it] = cos(phase) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = cos(phase) * exp(-atten * abs(d_ant - position[0]));
       break;
     case 2:                      //parallel wire transmission line
       status = get_tl_efield(position, efield);
-      in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;
     case 3:                      //square waveguide
       status = get_sq_wg_efield(position, efield);
-      in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;
     case 4:                      //circular waveguide
       status = get_circ_wg_efield(position, efield);
-      in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;
     case 5:                      //parallel plates
       status = get_pp_efield(position, efield);
-      in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;
     case 6:                      //coaxial cables
       status = get_coax_efield(position, efield);
-      in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;
     case 7:                      //offset parallel wire transmission line
       status = get_tl_efield(position, efield);
-      in[it] = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
       break;
   }
   return status;
