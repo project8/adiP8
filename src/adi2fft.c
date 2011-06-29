@@ -29,19 +29,13 @@
 #include "paramanage.h"
 #include "radiation.h"
 #include "fft_fitter.h"
+#include "structs.h"
 
 using namespace std;
 
 struct t_parameter parameter;
 
 //interpolated data at retarded time at the particle and calculated values
-typedef struct {
-  Long64_t i;
-  Double_t t_ant, t_ret, x, y, z, ycen, zcen, rad;
-  Double_t vx, vy, vz;
-  Double_t theta;
-  Double_t Ef, fW_t, phase, dphdt, omega;
-} INTERINFO;
 int calculate_radiation(INTERINFO &ii, double dir, double d_ant);
 
 int main(int argc, char *argv[])
