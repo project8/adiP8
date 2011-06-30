@@ -541,8 +541,8 @@ int main(int argc, char *argv[])
       cout << "Warning!  simulated time step smaller than interpolated time step! ";
       cout << "minStep = " << minStep << " at it = " << minIt << endl;
     }*/
-    intFTree->Write();
-    intBTree->Write();
+    intFTree->Write("",TObject::kOverwrite);
+    intBTree->Write("",TObject::kOverwrite);
     trackTree->Write();
     trackfile.close();
     
@@ -583,7 +583,7 @@ int main(int argc, char *argv[])
         //finished with antenna data
         inter_T = (it + 2) * tstep;
       }
-      wfTree->Write();
+      wfTree->Write("",TObject::kOverwrite);
       //3- fourier transform signal at antenna, in_for[] is electric field amplitude
       cout << "done making time series at trackfile line " << iline << " t=" << inter_T << endl;
       p = fftw_plan_dft_r2c_1d(max, in_for, out, FFTW_ESTIMATE);
