@@ -31,4 +31,4 @@ env.Program(target = 'bin/adifilter', source = Split('src/adifilter.c src/parama
 
 env.Program(target = 'bin/adiplot', source = Split('src/adiplot.c src/paramanage.c src/radiation.c'))
 
-env.Program(target = 'bin/magsource', source = Split('src/magsource.c src/magfield3.c src/array.c src/mag_pa_tool.c src/paramanage.c src/vector_tool.c src/matrix_tool.c src/math_tool.c src/bfield_ferenc.c'))
+env.Program(target = 'bin/magsource', source = Split('src/magsource.c src/magfield3.c src/array.c src/mag_pa_tool.c src/vector_tool.c src/matrix_tool.c src/math_tool.c src/bfield_ferenc.c'))
