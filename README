@@ -1,11 +1,12 @@
 Adiabatic particle tracking for Project8.
 
-To Compile (requires ROOT and FFTW3):
-./configure
-make
+To Compile (requires scons, ROOT and FFTW3):
+$ scons
 
-* the configure shell script is NOT a standard "configure" in that it does not create/modify a makefile.
-It also does NOT check for dependencies. All it currently does is ensure the existence of the ./bin and ./tmp directories.
+you can cleanup with:
+$ scons -c
+
+The scons tarball along with install instructions can be found here: http://www.scons.org/download.php.
 
 System Requirements:
 At this point we have made no attempt to determine exact system requirements or dependency versions. Instead we list what is hopefully sufficient detail of those systems which we are using for development. If you experience problems try moving your packages closer to these versions:
