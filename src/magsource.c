@@ -14,8 +14,6 @@
 #include <unistd.h>
 
 #include "magfield3.h"
-#include "paramanage.h"
-struct t_parameter parameter;
 
 int main(int argc, char **argv)
 {

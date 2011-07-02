@@ -58,11 +58,11 @@ int main(int argc, char *argv[])
     Double_t vx, vy, vz;                  //units m/s 
     Double_t ekin, eloss, b, phase, omega;//units eV, T, rad/us
   } TRACKINFO;
-  static TRACKINFO ti;
+  TRACKINFO ti;
 
   //interpolated data at retarded time at the particle and calculated values
-  static INTERINFO fi;          //forward wave
-  static INTERINFO bi;          //backward wave
+  INTERINFO fi;          //forward wave
+  INTERINFO bi;          //backward wave
 
   //time-domain antenna data similar to real data, with noise
   typedef struct {
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     Double_t fW_t, nfW_t;          //units fW
     Double_t sig, noise, vtot;     //units V
   } ANTINFO;
-  static ANTINFO anti;
+  ANTINFO anti;
 
   //fourier transform results
   typedef struct {
@@ -79,8 +79,8 @@ int main(int argc, char *argv[])
     Double_t outr, outi;        //from fftw
     Double_t fW_f, fJ_f, fJpHz; //units fW, fJ
   } POWERCALC;
-  static POWERCALC pc;          //without noise
-  static POWERCALC npc;         //with noise
+  POWERCALC pc;          //without noise
+  POWERCALC npc;         //with noise
 
 
   TString cardname = theApp.Argv(1);
@@ -675,7 +675,7 @@ int main(int argc, char *argv[])
       fit_pow_to_cos(pars, powert, tstep * US2S, nP, f0, i);
       fit_fft_to_sinc(pars, freq_array, PSD, nP, f0, i);
       fitcard->Fill(pars);//store sinc fit pars
-
+      cout << "Max power per bin: " << h1->GetBinContent(f0bin) << " fW " << endl;
       fftTree->Write();
       h1->Write();
       if (transNoise) {
@@ -734,48 +734,48 @@ int calculate_radiation(INTERINFO &ii, double dir, double d_ant)
      on the electric field strength of the dominant mode at the position of 
      the particle and the amount of attenuation along the length of the line. 
    */
-  Double_t position[3], velocity[3], omega, phase, atten;
-  position[0] = ii.x;
-  position[1] = ii.y;
-  position[2] = ii.z;
-  velocity[0] = ii.vx;
-  velocity[1] = ii.vy;
-  velocity[2] = ii.vz;
+
+  //rotate so magnetic axis is in z-direction
+  TVector3 position(ii.y, ii.z, ii.x);
+  TVector3 velocity(ii.vy, ii.vz, ii.vx);
+  Double_t omega, phase, atten;
   omega = ii.omega;
   phase = ii.phase;
   atten = tl_data.att;
   int status = 0;
-  double efield[3];
+  TVector3 efield(0,0,0);
   switch (parameter.rad_calc_mode) {
     case 0:
-      ii.Ef = cos(phase) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = cos(phase) * exp(-atten * abs(d_ant - position.Z()));
       break;
     case 1:
-      ii.Ef = cos(phase) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = cos(phase) * exp(-atten * abs(d_ant - position.Z()));
       break;
     case 2:                      //parallel wire transmission line
       status = get_tl_efield(position, efield);
-      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position.Z()));
       break;
     case 3:                      //square waveguide
       status = get_sq_wg_efield(position, efield);
-      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position.Z()));
       break;
     case 4:                      //circular waveguide
-      status = get_circ_wg_efield(position, efield);
-      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      status = get_circ_wg_efield_vert(position, efield);
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position.Z()));
+      //status = get_circ_wg_efield_horiz(position, efield);
+      //ii.Ef += coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position.Z()));
       break;
     case 5:                      //parallel plates
       status = get_pp_efield(position, efield);
-      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position.Z()));
       break;
     case 6:                      //coaxial cables
       status = get_coax_efield(position, efield);
-      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position.Z()));
       break;
     case 7:                      //offset parallel wire transmission line
       status = get_tl_efield(position, efield);
-      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position[0]));
+      ii.Ef = coeff_of_t(efield, velocity, dir) * exp(-atten * abs(d_ant - position.Z()));
       break;
   }
   return status;
