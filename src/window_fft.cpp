@@ -8,7 +8,7 @@
 #include "TNtuple.h"
 #include "TLeaf.h"
 #include "TObject.h"
-// Custom
+// Project8
 #include "window_fft.hpp"
 #include "structs.h"
 
@@ -239,4 +239,10 @@ int window_fft::get_nfwdpasses()
 int window_fft::get_nbwdpasses()
 {
   return nbwdpasses;
+}
+
+/*******************************************************/
+int window_fft::get_entries()
+{
+  return intree->GetEntries();
 }

@@ -43,4 +43,5 @@ public:
   void  set_intreename(char*);
   int get_nfwdpasses();
   int get_nbwdpasses();
+  int get_entries();
 };
