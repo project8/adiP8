@@ -143,17 +143,20 @@ void window_fft::dft_a_pass(int index, bool fwd)
     start = bwdpasses[0][index];
     stop  = bwdpasses[1][index];
   }
-  bwdXform = new TTree("bwdXform","windowed transform of backward passes");
-  int n;
-  fwdXform->Branch("i", &n, "i/I");
-  bwdXform->Branch("i", &n, "i/I");
+  cout << "pass " << index << " is from " << start << " to " << stop << endl;
+  INTERINFO fi;
+  intree->SetBranchAddress("fi", &fi);
   for (int i = 0; i < intree->GetEntries(); i++) {
-    n=i;
-    fwdXform->Fill();
-    bwdXform->Fill();
+    if (i < start) {
+      inXform[i] = 0;
+    } else if (i > stop) {
+      inXform[i] = 0;
+    } else {
+      intree->GetEntry(i);
+      inXform[i] = fi.Ef;
+    }
   }
-  fwdXform->Write("", TObject::kOverwrite);
-  bwdXform->Write("", TObject::kOverwrite);
+  fftw_execute(p);
 }
 
 void window_fft::dft_a_pass(int start, int stop)
