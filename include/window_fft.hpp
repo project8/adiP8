@@ -10,6 +10,8 @@ private:
   TFile *tfile;
   char intreename[255];
   TTree *intree;
+  TTree *fwdXform;
+  TTree *bwdXform;
 
   int fwdpasses[2][10000];
   int nfwdpasses;
@@ -31,6 +33,8 @@ public:
   void setup_fft();
   void cleanup_fft();
   void find_mc_passes();
+  void dft_a_pass(int, int);
+  void write_pass(int, int);
   /**********Get & Set*************************************/
   char *get_filename();
   void  set_filename(char*);

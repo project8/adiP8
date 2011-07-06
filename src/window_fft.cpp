@@ -7,6 +7,7 @@
 #include "TTree.h"
 #include "TNtuple.h"
 #include "TLeaf.h"
+#include "TObject.h"
 // Custom
 #include "window_fft.hpp"
 #include "structs.h"
@@ -39,6 +40,18 @@ void window_fft::open_file()
     exit(1);
   }
   intree = (TTree *) tfile->Get(intreename);
+  fwdXform = new TTree("fwdXform","windowed transform of forward passes");
+  bwdXform = new TTree("bwdXform","windowed transform of backward passes");
+  int n;
+  fwdXform->Branch("i", &n, "i/I");
+  bwdXform->Branch("i", &n, "i/I");
+  for (int i = 0; i < intree->GetEntries(); i++) {
+    n=i;
+    fwdXform->Fill();
+    bwdXform->Fill();
+  }
+  fwdXform->Write("", TObject::kOverwrite);
+  bwdXform->Write("", TObject::kOverwrite);
 }
 
 /*******************************************************/
@@ -123,6 +136,40 @@ void window_fft::find_mc_passes()
 }
 
 /*******************************************************/
+void window_fft::dft_a_pass(int start, int stop)
+{
+  INTERINFO fi;
+  intree->SetBranchAddress("fi", &fi);
+  for (int i = 0; i < intree->GetEntries(); i++) {
+    if (i < start) {
+      inXform[i] = 0;
+    } else if (i > stop) {
+      inXform[i] = 0;
+    } else {
+      intree->GetEntry(i);
+      inXform[i] = fi.Ef;
+    }
+  }
+  fftw_execute(p);
+}
+
+void window_fft::write_pass(int pass_id, int fwd = 1)
+{ 
+  cout << fwd << endl;
+  double in, real, cplx;
+  TBranch *inbranch = fwdXform->Branch(Form("pass_%d", pass_id), &in,   Form("pass_%d/D", pass_id));
+  TBranch *rebranch = fwdXform->Branch(Form("real_%d", pass_id), &real, Form("real_%d/D", pass_id));
+  TBranch *imbranch = fwdXform->Branch(Form("imag_%d", pass_id), &cplx, Form("imag_%d/D", pass_id));
+  for (int i = 0; i < intree->GetEntries(); i++) {
+    in = inXform[i];
+    real = outXform[i][0];
+    cplx = outXform[i][1];
+    inbranch->Fill();
+    rebranch->Fill();
+    imbranch->Fill();
+  }
+  fwdXform->Write("", TObject::kOverwrite);
+}
 
 /********Gets & Sets************************************/
 /*******************************************************/
