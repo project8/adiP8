@@ -17,10 +17,15 @@ using namespace std;
 // Construct & Destruct
 window_fft::window_fft()
 {
+  fft_inited = 0;
 }
 
 window_fft::~window_fft()
 {
+  if (fft_inited == 1){
+    cout << "fft parameters never freed, attempting now" << endl;
+    cleanup_fft();
+  }
 }
 
 /********General Use************************************/
@@ -40,6 +45,25 @@ void window_fft::open_file()
 void window_fft::close_file()
 {
   tfile->Close();
+}
+
+/*******************************************************/
+void window_fft::setup_fft()
+{
+  int N = intree->GetEntries();
+  inXform = (double *) fftw_malloc(sizeof(double) * N);
+  outXform = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * N);
+  p = fftw_plan_dft_r2c_1d(N, inXform, outXform, FFTW_ESTIMATE);
+  fft_inited = 1;
+}
+
+/*******************************************************/
+void window_fft::cleanup_fft()
+{
+  fftw_free(inXform);
+  fftw_free(outXform);
+  fftw_destroy_plan(p);
+  fft_inited = 0;
 }
 
 /*******************************************************/
