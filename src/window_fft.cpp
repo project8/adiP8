@@ -33,7 +33,6 @@ window_fft::~window_fft()
 /*******************************************************/
 void window_fft::open_file()
 {
-  cout << "Going to open file: " << filename << endl;
   tfile = new TFile(filename, "update");
   if (tfile->IsZombie()) {
     cout << "File failed to open" << endl;
@@ -131,11 +130,32 @@ void window_fft::find_mc_passes()
       wasin = 1;
     }
   }
-  cout << "there were " << nfwdpasses << " forward passes" << endl;
-  cout << "and " << nbwdpasses << " backward passes" << endl;
 }
 
 /*******************************************************/
+void window_fft::dft_a_pass(int index, bool fwd)
+{
+  int start, stop;
+  if (fwd) {
+    start = fwdpasses[0][index];
+    stop  = fwdpasses[1][index];
+  } else {
+    start = bwdpasses[0][index];
+    stop  = bwdpasses[1][index];
+  }
+  bwdXform = new TTree("bwdXform","windowed transform of backward passes");
+  int n;
+  fwdXform->Branch("i", &n, "i/I");
+  bwdXform->Branch("i", &n, "i/I");
+  for (int i = 0; i < intree->GetEntries(); i++) {
+    n=i;
+    fwdXform->Fill();
+    bwdXform->Fill();
+  }
+  fwdXform->Write("", TObject::kOverwrite);
+  bwdXform->Write("", TObject::kOverwrite);
+}
+
 void window_fft::dft_a_pass(int start, int stop)
 {
   INTERINFO fi;
@@ -153,22 +173,37 @@ void window_fft::dft_a_pass(int start, int stop)
   fftw_execute(p);
 }
 
-void window_fft::write_pass(int pass_id, int fwd = 1)
+/*******************************************************/
+void window_fft::write_pass(int pass_id, bool fwd)
 { 
-  cout << fwd << endl;
   double in, real, cplx;
-  TBranch *inbranch = fwdXform->Branch(Form("pass_%d", pass_id), &in,   Form("pass_%d/D", pass_id));
-  TBranch *rebranch = fwdXform->Branch(Form("real_%d", pass_id), &real, Form("real_%d/D", pass_id));
-  TBranch *imbranch = fwdXform->Branch(Form("imag_%d", pass_id), &cplx, Form("imag_%d/D", pass_id));
-  for (int i = 0; i < intree->GetEntries(); i++) {
-    in = inXform[i];
-    real = outXform[i][0];
-    cplx = outXform[i][1];
-    inbranch->Fill();
-    rebranch->Fill();
-    imbranch->Fill();
+  if (fwd) {
+    TBranch *inbranch = fwdXform->Branch(Form("pass_%d", pass_id), &in,   Form("pass_%d/D", pass_id));
+    TBranch *rebranch = fwdXform->Branch(Form("real_%d", pass_id), &real, Form("real_%d/D", pass_id));
+    TBranch *imbranch = fwdXform->Branch(Form("imag_%d", pass_id), &cplx, Form("imag_%d/D", pass_id));
+    for (int i = 0; i < intree->GetEntries(); i++) {
+      in = inXform[i];
+      real = outXform[i][0];
+      cplx = outXform[i][1];
+      inbranch->Fill();
+      rebranch->Fill();
+      imbranch->Fill();
+    }
+    fwdXform->Write("", TObject::kOverwrite);
+  } else {
+    TBranch *inbranch = bwdXform->Branch(Form("pass_%d", pass_id), &in,   Form("pass_%d/D", pass_id));
+    TBranch *rebranch = bwdXform->Branch(Form("real_%d", pass_id), &real, Form("real_%d/D", pass_id));
+    TBranch *imbranch = bwdXform->Branch(Form("imag_%d", pass_id), &cplx, Form("imag_%d/D", pass_id));
+    for (int i = 0; i < intree->GetEntries(); i++) {
+      in = inXform[i];
+      real = outXform[i][0];
+      cplx = outXform[i][1];
+      inbranch->Fill();
+      rebranch->Fill();
+      imbranch->Fill();
+    }
+    bwdXform->Write("", TObject::kOverwrite);
   }
-  fwdXform->Write("", TObject::kOverwrite);
 }
 
 /********Gets & Sets************************************/
@@ -192,4 +227,16 @@ char *window_fft::get_intreename()
 void window_fft::set_intreename(char *name)
 {
   strcpy(intreename,name);
+}
+
+/*******************************************************/
+int window_fft::get_nfwdpasses()
+{
+  return nfwdpasses;
+}
+
+/*******************************************************/
+int window_fft::get_nbwdpasses()
+{
+  return nbwdpasses;
 }

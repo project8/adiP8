@@ -33,11 +33,14 @@ public:
   void setup_fft();
   void cleanup_fft();
   void find_mc_passes();
+  void dft_a_pass(int, bool);
   void dft_a_pass(int, int);
-  void write_pass(int, int);
+  void write_pass(int, bool);
   /**********Get & Set*************************************/
   char *get_filename();
   void  set_filename(char*);
   char *get_intreename();
   void  set_intreename(char*);
+  int get_nfwdpasses();
+  int get_nbwdpasses();
 };
