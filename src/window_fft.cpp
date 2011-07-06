@@ -8,6 +8,7 @@
 #include "TNtuple.h"
 #include "TLeaf.h"
 #include "TObject.h"
+#include "TVector2.h"
 // Project8
 #include "window_fft.hpp"
 #include "structs.h"
@@ -179,31 +180,26 @@ void window_fft::dft_a_pass(int start, int stop)
 /*******************************************************/
 void window_fft::write_pass(int pass_id, bool fwd)
 { 
-  double in, real, cplx;
+  double in;
+  TVector2 out;
   if (fwd) {
     TBranch *inbranch = fwdXform->Branch(Form("pass_%d", pass_id), &in,   Form("pass_%d/D", pass_id));
-    TBranch *rebranch = fwdXform->Branch(Form("real_%d", pass_id), &real, Form("real_%d/D", pass_id));
-    TBranch *imbranch = fwdXform->Branch(Form("imag_%d", pass_id), &cplx, Form("imag_%d/D", pass_id));
+    TBranch *otbranch = fwdXform->Branch(Form("Xform_%d", pass_id), "TVector2", &out);
     for (int i = 0; i < intree->GetEntries(); i++) {
       in = inXform[i];
-      real = outXform[i][0];
-      cplx = outXform[i][1];
+      out.Set(outXform[i][0], outXform[i][1]);
       inbranch->Fill();
-      rebranch->Fill();
-      imbranch->Fill();
+      otbranch->Fill();
     }
     fwdXform->Write("", TObject::kOverwrite);
   } else {
     TBranch *inbranch = bwdXform->Branch(Form("pass_%d", pass_id), &in,   Form("pass_%d/D", pass_id));
-    TBranch *rebranch = bwdXform->Branch(Form("real_%d", pass_id), &real, Form("real_%d/D", pass_id));
-    TBranch *imbranch = bwdXform->Branch(Form("imag_%d", pass_id), &cplx, Form("imag_%d/D", pass_id));
+    TBranch *otbranch = bwdXform->Branch(Form("Xform_%d", pass_id), "TVector2", &out);
     for (int i = 0; i < intree->GetEntries(); i++) {
       in = inXform[i];
-      real = outXform[i][0];
-      cplx = outXform[i][1];
+      out.Set(outXform[i][0], outXform[i][1]);
       inbranch->Fill();
-      rebranch->Fill();
-      imbranch->Fill();
+      otbranch->Fill();
     }
     bwdXform->Write("", TObject::kOverwrite);
   }
