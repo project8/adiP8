@@ -1,4 +1,5 @@
 *.o
+*.opp
 *.swp
 .sconsign.dblite
 adi2fft

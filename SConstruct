@@ -34,3 +34,5 @@ env.Program(target = 'bin/adiplot', source = Split('src/adiplot.c src/paramanage
 env.Program(target = 'bin/magsource', source = Split('src/magsource.c src/magfield3.c src/array.c'))
 
 env.Object('src/window_fft.cpp', CXXFLAGS = Flags, CPPPATH = IncludePath + rootPath, LIBPATH = LibPath + rootLibPath, Libs = Libs + rootLibs)
+
+env.Object(target = 'src/paramanage.opp', source = 'src/paramanage.cpp', CXXFLAGS = Flags, CPPPATH = IncludePath + rootPath, LIBPATH = LibPath + rootLibPath, Libs = Libs + rootLibs)
