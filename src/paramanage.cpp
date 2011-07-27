@@ -167,15 +167,31 @@ void paramanage::restore_defaults()
 }
 
 /***********Get & Set****************************/
-  // adipark settings
+  // adipark settings*
+int paramanage::get_adip_run_mode()
+{
+  return adip_run_mode;
+}
 void paramanage::set_adip_run_mode()
 {
   adip_run_mode = 1;
 }
+void paramanage::set_adip_run_mode(int value)
+{
+  adip_run_mode = value;
+}
 
+int paramanage::get_use_mag_pa()
+{
+  return use_mag_pa;
+}
 void paramanage::set_use_mag_pa()
 {
   use_mag_pa = 2;
+}
+void paramanage::set_use_mag_pa(int value)
+{
+  use_mag_pa = value;
 }
   // tracking module
 void paramanage::set_max_mirrors()
