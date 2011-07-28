@@ -142,125 +142,292 @@ public:
   void set_rel_start_angle(int);
 
   /*********************************************/
+  double get_puls_time();
   void set_puls_time();
+  void set_puls_time(double);
+  
   /*********************************************/
+  double get_min_shrink_factor();
   void set_min_shrink_factor();
+  void set_min_shrink_factor(double);
+
   /*********************************************/
+  int get_interpol_splat();
   void set_interpol_splat();
+  void set_interpol_splat(int);
+
   /*********************************************/
+  double get_residual_gas_pressure();
   void set_residual_gas_pressure();
+  void set_residual_gas_pressure(double);
+
   /*********************************************/
+  double get_e_min_cooling();
   void set_e_min_cooling();
+  void set_e_min_cooling(double);
+
   /*********************************************/
+  double get_dipole_value();
   void set_dipole_value();
+  void set_dipole_value(double);
+
   /*********************************************/
+  double get_e_para_min();
   void set_e_para_min();
+  void set_e_para_min(double);
+
   /*********************************************/
+  double get_spec_in();
   void set_spec_in();
+  void set_spec_in(double);
+
   /*********************************************/
+  double get_spec_out();
   void set_spec_out();
+  void set_spec_out(double);
+
   /*********************************************/
+  double get_max_radius();
   void set_max_radius();
+  void set_max_radius(double);
+
   /*********************************************/
   // magnetic potential array
   /*********************************************/
+  double get_mag_mm_unit();
   void set_mag_mm_unit();
+  void set_mag_mm_unit(double);
+
   /*********************************************/
+  double get_mag_x_offset();
   void set_mag_x_offset();
+  void set_mag_x_offset(double);
+
   /*********************************************/
+  double get_mag_y_offset();
   void set_mag_y_offset();
+  void set_mag_y_offset(double);
+
   /*********************************************/
+  double get_mag_z_offset();
   void set_mag_z_offset();
+  void set_mag_z_offset(double);
+
   /*********************************************/
+  int get_n_pot_array();
   void set_n_pot_array();
+  void set_n_pot_array(int);
+
   /*********************************************/
   // parabolic magnetic field
   /*********************************************/
+  double get_b_field_ben1();
   void set_b_field_ben1();
+  void set_b_field_ben1(double);
+
   /*********************************************/
+  double get_b_field_ben2();
   void set_b_field_ben2();
+  void set_b_field_ben2(double);
+
   // electric fields
+  int get_enable_epot();
   void set_enable_epot();
+  void set_enable_epot(int);
+
   /*********************************************/
+  double get_el_mm_unit();
   void set_el_mm_unit();
+  void set_el_mm_unit(double);
+
   /*********************************************/
+  double get_el_x_offset();
   void set_el_x_offset();
+  void set_el_x_offset(double);
+
   /*********************************************/
+  double get_el_y_offset();
   void set_el_y_offset();
+  void set_el_y_offset(double);
+
   /*********************************************/
+  double get_el_z_offset();
   void set_el_z_offset();
+  void set_el_z_offset(double);
+
   /*********************************************/
   // transmission module
   /*********************************************/
+  double get_trans_b_pinch();
   void set_trans_b_pinch();
+  void set_trans_b_pinch(double);
+
   /*********************************************/
+  double get_trans_u_pinch();
   void set_trans_u_pinch();
+  void set_trans_u_pinch(double);
+
   /*********************************************/
+  int get_trans_steps();
   void set_trans_steps();
+  void set_trans_steps(int);
+
   /*********************************************/
   // trapping module
   /*********************************************/
+  double get_trap_start_x();
   void set_trap_start_x();
+  void set_trap_start_x(double);
+
   /*********************************************/
+  double get_trap_stop_x();
   void set_trap_stop_x();
+  void set_trap_stop_x(double);
+
   /*********************************************/
+  double get_trap_step_x();
   void set_trap_step_x();
+  void set_trap_step_x(double);
+
   /*********************************************/
+  double get_trap_start_y();
   void set_trap_start_y();
+  void set_trap_start_y(double);
+  
   /*********************************************/
+  double get_trap_stop_y();
   void set_trap_stop_y();
+  void set_trap_stop_y(double);
+
   /*********************************************/
+  double get_trap_step_y();
   void set_trap_step_y();
+  void set_trap_step_y(double);
+
   /*********************************************/
+  double get_trap_energy_start();
   void set_trap_energy_start();
+  void set_trap_energy_start(double);
+
   /*********************************************/
+  double get_trap_energy_end();
   void set_trap_energy_end();
+  void set_trap_energy_end(double);
+  
   /*********************************************/
+  double get_trap_theta_start();
   void set_trap_theta_start();
+  void set_trap_theta_start(double);
+
   /*********************************************/
+  double get_trap_theta_step();
   void set_trap_theta_step();
+  void set_trap_theta_step(double);
+
   /*********************************************/
+  double get_trap_phi_start();
   void set_trap_phi_start();
+  void set_trap_phi_start(double);
+
   /*********************************************/
+  int get_trap_neg_y();
   void set_trap_neg_y();
+  void set_trap_neg_y(int);
+
   /*********************************************/
+  int get_trap_y_plane();
   void set_trap_y_plane();
+  void set_trap_y_plane(int);
+
   /*********************************************/
+  int get_trap_z_plane();
   void set_trap_z_plane();
+  void set_trap_z_plane(int);
+  
   /*********************************************/
+  int get_trap_max_mirrors();
   void set_trap_max_mirrors();
+  void set_trap_max_mirrors(int);
+
   /*********************************************/
+  double get_trap_mass();
   void set_trap_mass();
+  void set_trap_mass(double);
+
   /*********************************************/
+  double get_trap_charge();
   void set_trap_charge();
+  void set_trap_charge(double);
+
   /*********************************************/
+  double get_trap_max_step_length();
   void set_trap_max_step_length();
+  void set_trap_max_step_length(double);
+
   /*********************************************/
+  double get_trap_e_para_min();
   void set_trap_e_para_min();
+  void set_trap_e_para_min(double);
+
   /*********************************************/
+  int get_trap_calc_order();
   void set_trap_calc_order();
+  void set_trap_calc_order(int);
+
   /*********************************************/
+  double get_trap_max_tof();
   void set_trap_max_tof();
+  void set_trap_max_tof(double);
+
   /*********************************************/
   // adi2fft settings
   /*********************************************/
+  int get_rad_calc_mode();
   void set_rad_calc_mode();
+  void set_rad_calc_mode(int);
+
   /*********************************************/
+  int get_rad_shift();
   void set_rad_shift();
+  void set_rad_shift(int);
+
   /*********************************************/
+  double get_antenna_temp();
   void set_antenna_temp();
+  void set_antenna_temp(double);
+
   /*********************************************/
+  double get_impedance();
   void set_impedance();
+  void set_impedance(double);
+
   /*********************************************/
-  /*********************************************/
+  int get_rad_atten();
   void set_rad_atten();
+  void set_rad_atten(int);
+
+  /*********************************************/
+  double get_antenna_pos();
   void set_antenna_pos();
+  void set_antenna_pos(double);
+
   /*********************************************/
+  int get_fft_on();
   void set_fft_on();
+  void set_fft_on(int);
+  
   /*********************************************/
+  double get_fft_resample_tstep();
   void set_fft_resample_tstep();
+  void set_fft_resample_tstep(double);
+
   /*********************************************/
+  int get_fft_max_npts();
   void set_fft_max_npts();
+  void set_fft_max_npts(int);
+
   /*********************************************/
+  int get_leave_antenna();
   void set_leave_antenna();
+  void set_leave_antenna(int);
 };
