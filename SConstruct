@@ -35,4 +35,4 @@ env.Program(target = 'bin/magsource', source = Split('src/magsource.c src/magfie
 
 env.Object('src/window_fft.cpp', CXXFLAGS = Flags, CPPPATH = IncludePath + rootPath, LIBPATH = LibPath + rootLibPath, Libs = Libs + rootLibs)
 
-env.Object(target = 'src/paramanage.opp', source = 'src/paramanage.cpp', CXXFLAGS = Flags, CPPPATH = IncludePath + rootPath, LIBPATH = LibPath + rootLibPath, Libs = Libs + rootLibs)
+env.Object(target = 'src/parameter.o', source = 'src/parameter.cpp', CXXFLAGS = Flags, CPPPATH = IncludePath + rootPath, LIBPATH = LibPath + rootLibPath, Libs = Libs + rootLibs)
