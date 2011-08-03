@@ -21,8 +21,8 @@ for rc in rootconf:
 fftwLibs = ['fftw3','m']
 
 # Setup build environment
-#bld_rootdict = Builder(action = os.environ['ROOTSYS']+"/bin/rootcint -f $TARGET -c -g -Wall -Wextra -Werror -p $SOURCES && mv `echo $TARGET | sed -e 's/cpp/h/'`",
-bld_rootdict = Builder(action = os.environ['ROOTSYS']+"/bin/rootcint -f $TARGET -c -g -Wall -Wextra -Werror -p $SOURCES && mv $TARGET `echo $TARGET | sed -e 's/include/src/'`",
+bld_rootdict = Builder(action = os.environ['ROOTSYS']+"/bin/rootcint -f $TARGET -c $CPPFLAGS -p $SOURCES && " +
+                                "mv `echo $TARGET | sed -e 's/cpp/h/'` `echo $TARGET | sed -e 's/cpp/h/' | sed -e 's/src/include/'`",
                        suffix = '.cpp',
                        src_suffix = '.hpp')
 
@@ -41,7 +41,7 @@ adiplot = env.Program(target = 'bin/adiplot', source = Split('src/adiplot.c src/
 
 magsource = env.Program(target = 'bin/magsource', source = Split('src/magsource.c src/magfield3.c src/array.c'))
 
-rootdict = env.RootDict(target = 'include/clp8.cpp', source = Split('include/parameter include/window_fft'))
+rootdict = env.RootDict(target = 'src/clp8.cpp', source = Split('include/parameter include/window_fft'))
 
 clp8 = env.SharedLibrary(target = 'lib/clp8', source = Split('src/clp8.cpp src/parameter.cpp src/window_fft.cpp'))#, CPPPATH = IncludePath + rootPath + ['.'])
 
