@@ -21,12 +21,18 @@ for rc in rootconf:
 fftwLibs = ['fftw3','m']
 
 # Setup build environment
-bld_rootdict = Builder(action = os.environ['ROOTSYS']+"/bin/rootcint -f $TARGET -c $CPPFLAGS -p $SOURCES && " +
-                                "mv `echo $TARGET | sed -e 's/cpp/h/'` `echo $TARGET | sed -e 's/cpp/h/' | sed -e 's/src/include/'`",
+bld_rootdict = Builder(action = os.environ['ROOTSYS']+"/bin/rootcint -f $TARGET"+
+                                " -c $CPPFLAGS -p $SOURCES && " +
+                                "mv `echo $TARGET | sed -e 's/cpp/h/'`"+
+                                " `echo $TARGET | sed -e 's/cpp/h/'"+
+                                               "| sed -e 's/src/include/'`",
                        suffix = '.cpp',
                        src_suffix = '.hpp')
 
-env = Environment(CC='g++', CPPFLAGS = Flags, CPPPATH = IncludePath + rootPath, LIBPATH = LibPath + rootLibPath, LIBS = Libs + rootLibs + fftwLibs)
+env = Environment(CC='g++', CPPFLAGS = Flags,
+                  CPPPATH = IncludePath + rootPath,
+                  LIBPATH = LibPath + rootLibPath,
+                  LIBS = Libs + rootLibs + fftwLibs)
 env['ENV']['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH']
 env['BUILDERS']['RootDict'] = bld_rootdict
 
