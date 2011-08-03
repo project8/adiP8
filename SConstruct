@@ -44,7 +44,3 @@ env.Program(target = 'bin/magsource', source = Split('src/magsource.c src/magfie
 env.RootDict(target = 'include/clp8.cpp', source = Split('include/parameter include/window_fft'))
 
 env.SharedLibrary(target = 'lib/clp8', source = Split('src/clp8.cpp src/parameter.cpp src/window_fft.cpp'))#, CPPPATH = IncludePath + rootPath + ['.'])
-
-#env.Object(source = 'src/window_fft.cpp', CXXFLAGS = Flags, CPPPATH = IncludePath + rootPath, LIBPATH = LibPath + rootLibPath, Libs = Libs + rootLibs)
-
-#env.Object(source = 'src/parameter.cpp', CXXFLAGS = Flags, CPPPATH = IncludePath + rootPath, LIBPATH = LibPath + rootLibPath, Libs = Libs + rootLibs)
