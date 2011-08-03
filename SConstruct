@@ -31,16 +31,21 @@ env['ENV']['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH']
 env['BUILDERS']['RootDict'] = bld_rootdict
 
 # Actually make the build rules
-env.Program(target = 'bin/adipark', source = Split('src/adipark.c src/mag_pa_tool.c src/magfield3.c src/bfield_ferenc.c src/eH2.c src/math_tool.c src/vector_tool.c src/matrix_tool.c src/array.c src/sim_pilot.c src/sim_core.c src/sim_scatter.c src/sim_help.c src/paramanage.c src/el_pa_tool.c'))
+adipark = env.Program(target = 'bin/adipark', source = Split('src/adipark.c src/mag_pa_tool.c src/magfield3.c src/bfield_ferenc.c src/eH2.c src/math_tool.c src/vector_tool.c src/matrix_tool.c src/array.c src/sim_pilot.c src/sim_core.c src/sim_scatter.c src/sim_help.c src/paramanage.c src/el_pa_tool.c'))
 
-env.Program(target = 'bin/adi2fft', source = Split('src/adi2fft.c src/fft_fitter.c src/paramanage.c src/radiation.c'))
+adi2fft = env.Program(target = 'bin/adi2fft', source = Split('src/adi2fft.c src/fft_fitter.c src/paramanage.c src/radiation.c'))
 
-env.Program(target = 'bin/adifilter', source = Split('src/adifilter.c src/paramanage.c src/radiation.c'))
+adifilter = env.Program(target = 'bin/adifilter', source = Split('src/adifilter.c src/paramanage.c src/radiation.c'))
 
-env.Program(target = 'bin/adiplot', source = Split('src/adiplot.c src/paramanage.c src/radiation.c'))
+adiplot = env.Program(target = 'bin/adiplot', source = Split('src/adiplot.c src/paramanage.c src/radiation.c'))
 
-env.Program(target = 'bin/magsource', source = Split('src/magsource.c src/magfield3.c src/array.c'))
+magsource = env.Program(target = 'bin/magsource', source = Split('src/magsource.c src/magfield3.c src/array.c'))
 
-env.RootDict(target = 'include/clp8.cpp', source = Split('include/parameter include/window_fft'))
+rootdict = env.RootDict(target = 'include/clp8.cpp', source = Split('include/parameter include/window_fft'))
 
-env.SharedLibrary(target = 'lib/clp8', source = Split('src/clp8.cpp src/parameter.cpp src/window_fft.cpp'))#, CPPPATH = IncludePath + rootPath + ['.'])
+clp8 = env.SharedLibrary(target = 'lib/clp8', source = Split('src/clp8.cpp src/parameter.cpp src/window_fft.cpp'))#, CPPPATH = IncludePath + rootPath + ['.'])
+
+# Extra cleanup
+Clean(rootdict, Split('src/clp8.cpp include/clp8.h'))
+Clean(clp8, 'lib')
+Clean([adipark, adi2fft, adifilter, adiplot, magsource],'bin')
