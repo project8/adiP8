@@ -1,6 +1,7 @@
 *.o
 *.opp
 *.swp
+*.os
 .sconsign.dblite
 adi2fft
 adifilter
@@ -11,3 +12,4 @@ magsource
 example.root
 example.set1
 example.track1*
+clp8.*

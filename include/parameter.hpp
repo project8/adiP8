@@ -1,4 +1,6 @@
-class parameter
+#include "TObject.h"
+
+class parameter : public TObject
 {
 private:
   // adipark settings
@@ -79,7 +81,7 @@ private:
 public:
   /*********************************************/
   parameter();
-  ~parameter();
+  virtual ~parameter();
   void restore_defaults();
   
   /***********Get & Set****************************/
@@ -430,4 +432,8 @@ public:
   int get_leave_antenna();
   void set_leave_antenna();
   void set_leave_antenna(int);
+
+  /*********************************************/
+  /*********************************************/
+  ClassDef(parameter, 1);
 };
