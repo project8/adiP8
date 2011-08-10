@@ -82,7 +82,10 @@ public:
   /*********************************************/
   parameter();
   virtual ~parameter();
+
+  /**********Other Use**************************/
   void restore_defaults();
+  void parse_file(char inifile[255]);
   
   /***********Get & Set****************************/
   // adipark settings
