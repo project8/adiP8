@@ -83,7 +83,9 @@ parameter::parameter():
   fft_on(1),
   fft_resample_tstep(0.000003),
   fft_max_npts(20000000),
-  leave_antenna(0)
+  leave_antenna(0),
+  filter_lo(26.9E9),
+  filter_sf(6E8)
 {
 }
 
@@ -169,6 +171,8 @@ void parameter::restore_defaults()
   fft_resample_tstep = 0.000003;
   fft_max_npts = 20000000;
   leave_antenna = 0;
+  filter_lo = 26.9E9;
+  filter_sf = 6E8;
 }
 
 void parameter::parse_file(char inifile[255])
@@ -183,141 +187,144 @@ void parameter::parse_file(char inifile[255])
   while (stat != EOF) {
     stat = fscanf(infile, "#define %s %lf", identifier, &value);
     if (stat == 2) {
-      cout << "stat is " << stat << endl;
-      cout << "id is " << identifier << endl;
-      cout << "value is " << value << endl;
       if (strcmp(identifier,"ADIP_RUN_MODE") == 0) {
-        cout << "got here" << endl;
+        set_adip_run_mode(int(value));
       } else if (strcmp(identifier,"USE_MAG_PA") == 0) {
-        cout << "got here" << endl;
+        set_use_mag_pa(int(value));
       } else if (strcmp(identifier,"MAX_MIRRORS") == 0) {
-        cout << "got here" << endl;
+        set_max_mirrors(int(value));
       } else if (strcmp(identifier,"MAX_TOF_IN_SEC") == 0) {
-        cout << "got here" << endl;
+        set_max_tof_in_sec(double(value));
       } else if (strcmp(identifier,"MAX_LOOPS") == 0) {
-        cout << "got here" << endl;
+        set_max_loops(int(value));
       } else if (strcmp(identifier,"MAX_STEP_LENGTH") == 0) {
-        cout << "got here" << endl;
+        set_max_step_length(double(value));
       } else if (strcmp(identifier,"SAVE_EVERY") == 0) {
-        cout << "got here" << endl;
+        set_save_every(int(value));
       } else if (strcmp(identifier,"ENABLE_PERP_ENERGY_LOSS") == 0) {
-        cout << "got here" << endl;
+        set_perp_e_loss(int(value));
+      } else if (strcmp(identifier,"ENABLE_PARA_ENERGY_LOSS") == 0) {
+        set_para_e_loss(int(value));
       } else if (strcmp(identifier,"CALC_ORDER") == 0) {
-        cout << "got here" << endl;
+        set_calc_order(int(value));
       } else if (strcmp(identifier,"REL_START_ANGLE") == 0) {
-        cout << "got here" << endl;
+        set_rel_start_angle(int(value));
       } else if (strcmp(identifier,"PULS_TIME") == 0) {
-        cout << "got here" << endl;
+        set_puls_time(double(value));
       } else if (strcmp(identifier,"MIN_SHRINK_FACTOR") == 0) {
-        cout << "got here" << endl;
+        set_min_shrink_factor(double(value));
       } else if (strcmp(identifier,"INTERPOL_SPLAT") == 0) {
-        cout << "got here" << endl;
+        set_interpol_splat(int(value));
       } else if (strcmp(identifier,"RESIDUAL_GAS_PRESSURE") == 0) {
-        cout << "got here" << endl;
+        set_residual_gas_pressure(double(value));
       } else if (strcmp(identifier,"E_MIN_COOLING") == 0) {
-        cout << "got here" << endl;
+        set_e_min_cooling(double(value));
       } else if (strcmp(identifier,"DIPOLE_VALUE") == 0) {
-        cout << "got here" << endl;
+        set_dipole_value(double(value));
       } else if (strcmp(identifier,"E_PARA_MIN") == 0) {
-        cout << "got here" << endl;
+        set_e_para_min(double(value));
       } else if (strcmp(identifier,"SPEC_IN") == 0) {
-        cout << "got here" << endl;
+        set_spec_in(double(value));
       } else if (strcmp(identifier,"SPEC_OUT") == 0) {
-        cout << "got here" << endl;
+        set_spec_out(double(value));
       } else if (strcmp(identifier,"MAX_RADIUS") == 0) {
-        cout << "got here" << endl;
+        set_max_radius(double(value));
       } else if (strcmp(identifier,"MAG_MM_PER_UNIT") == 0) {
-        cout << "got here" << endl;
+        set_mag_mm_unit(double(value));
       } else if (strcmp(identifier,"MAG_X_OFFSET_IN_CM") == 0) {
-        cout << "got here" << endl;
+        set_mag_x_offset(double(value));
       } else if (strcmp(identifier,"MAG_Y_OFFSET_IN_CM") == 0) {
-        cout << "got here" << endl;
+        set_mag_y_offset(double(value));
       } else if (strcmp(identifier,"MAG_Z_OFFSET_IN_CM") == 0) {
-        cout << "got here" << endl;
+        set_mag_z_offset(double(value));
       } else if (strcmp(identifier,"N_POT_ARRAY") == 0) {
-        cout << "got here" << endl;
+        set_n_pot_array(int(value));
       } else if (strcmp(identifier,"B_FIELD_BEN1") == 0) {
-        cout << "got here" << endl;
+        set_b_field_ben1(double(value));
       } else if (strcmp(identifier,"B_FIELD_BEN2") == 0) {
-        cout << "got here" << endl;
+        set_b_field_ben2(double(value));
       } else if (strcmp(identifier,"ENABLE_EPOT") == 0) {
-        cout << "got here" << endl;
+        set_enable_epot(int(value));
       } else if (strcmp(identifier,"EL_MM_PER_UNIT") == 0) {
-        cout << "got here" << endl;
+        set_el_mm_unit(double(value));
       } else if (strcmp(identifier,"EL_X_OFFSET_IN_CM") == 0) {
-        cout << "got here" << endl;
+        set_el_x_offset(double(value));
       } else if (strcmp(identifier,"EL_Y_OFFSET_IN_CM") == 0) {
-        cout << "got here" << endl;
+        set_el_y_offset(double(value));
       } else if (strcmp(identifier,"EL_Z_OFFSET_IN_CM") == 0) {
-        cout << "got here" << endl;
+        set_el_z_offset(double(value));
       } else if (strcmp(identifier,"TRANS_B_PINCH") == 0) {
-        cout << "got here" << endl;
+        set_trans_b_pinch(double(value));
       } else if (strcmp(identifier,"TRANS_U_PINCH") == 0) {
-        cout << "got here" << endl;
+        set_trans_u_pinch(double(value));
       } else if (strcmp(identifier,"TRANS_STEPS") == 0) {
-        cout << "got here" << endl;
+        set_trans_steps(int(value));
       } else if (strcmp(identifier,"TRAP_START_X") == 0) {
-        cout << "got here" << endl;
+        set_trap_start_x(double(value));
       } else if (strcmp(identifier,"TRAP_STOP_X") == 0) {
-        cout << "got here" << endl;
+        set_trap_stop_x(double(value));
       } else if (strcmp(identifier,"TRAP_STEP_X") == 0) {
-        cout << "got here" << endl;
+        set_trap_step_x(double(value));
       } else if (strcmp(identifier,"TRAP_START_Y") == 0) {
-        cout << "got here" << endl;
+        set_trap_start_y(double(value));
       } else if (strcmp(identifier,"TRAP_STOP_Y") == 0) {
-        cout << "got here" << endl;
+        set_trap_stop_y(double(value));
       } else if (strcmp(identifier,"TRAP_STEP_Y") == 0) {
-        cout << "got here" << endl;
+        set_trap_step_y(double(value));
       } else if (strcmp(identifier,"TRAP_ENERGY_START") == 0) {
-        cout << "got here" << endl;
+        set_trap_energy_start(double(value));
+      } else if (strcmp(identifier,"TRAP_ENERGY_END") == 0) {
+        set_trap_energy_end(double(value));
       } else if (strcmp(identifier,"TRAP_THETA_START") == 0) {
-        cout << "got here" << endl;
+        set_trap_theta_start(double(value));
+      } else if (strcmp(identifier,"TRAP_THETA_STEP") == 0) {
+        set_trap_theta_step(double(value));
       } else if (strcmp(identifier,"TRAP_PHI_START") == 0) {
-        cout << "got here" << endl;
+        set_trap_phi_start(double(value));
       } else if (strcmp(identifier,"ENABLE_NEG_Y") == 0) {
-        cout << "got here" << endl;
+        set_trap_neg_y(int(value));
       } else if (strcmp(identifier,"SET_Y_PLANE") == 0) {
-        cout << "got here" << endl;
+        set_trap_y_plane(int(value));
       } else if (strcmp(identifier,"SET_Z_PLANE") == 0) {
-        cout << "got here" << endl;
+        set_trap_z_plane(int(value));
       } else if (strcmp(identifier,"TRAP_MAX_MIRRORS") == 0) {
-        cout << "got here" << endl;
+        set_trap_max_mirrors(int(value));
       } else if (strcmp(identifier,"TRAP_MASS") == 0) {
-        cout << "got here" << endl;
+        set_trap_mass(double(value));
       } else if (strcmp(identifier,"TRAP_CHARGE") == 0) {
-        cout << "got here" << endl;
+        set_trap_charge(double(value));
       } else if (strcmp(identifier,"TRAP_MAX_STEP_LENGTH") == 0) {
-        cout << "got here" << endl;
+        set_trap_max_step_length(double(value));
       } else if (strcmp(identifier,"TRAP_E_PARA_MIN") == 0) {
-        cout << "got here" << endl;
+        set_trap_e_para_min(double(value));
       } else if (strcmp(identifier,"TRAP_CALC_ORDER") == 0) {
-        cout << "got here" << endl;
+        set_trap_calc_order(int(value));
       } else if (strcmp(identifier,"TRAP_MAX_TOF") == 0) {
-        cout << "got here" << endl;
+        set_trap_max_tof(double(value));
       } else if (strcmp(identifier,"RAD_CALC_MODE") == 0) {
-        cout << "got here" << endl;
+        set_rad_calc_mode(int(value));
       } else if (strcmp(identifier,"RAD_SHIFT") == 0) {
-        cout << "got here" << endl;
+        set_rad_shift(int(value));
       } else if (strcmp(identifier,"ANTENNA_TEMP") == 0) {
-        cout << "got here" << endl;
+        set_antenna_temp(double(value));
       } else if (strcmp(identifier,"IMPEDANCE") == 0) {
-        cout << "got here" << endl;
+        set_impedance(double(value));
       } else if (strcmp(identifier,"RAD_ATTEN") == 0) {
-        cout << "got here" << endl;
+        set_rad_atten(int(value));
       } else if (strcmp(identifier,"ANTENNA_POS") == 0) {
-        cout << "got here" << endl;
+        set_antenna_pos(double(value));
       } else if (strcmp(identifier,"FFT_ON") == 0) {
-        cout << "got here" << endl;
+        set_fft_on(int(value));
       } else if (strcmp(identifier,"FFT_RESAMPLE_TSTEP") == 0) {
-        cout << "got here" << endl;
+        set_fft_resample_tstep(double(value));
       } else if (strcmp(identifier,"FFT_MAX_NPTS") == 0) {
-        cout << "got here" << endl;
+        set_fft_max_npts(int(value));
       } else if (strcmp(identifier,"LEAVE_ANTENNA") == 0) {
-        cout << "got here" << endl;
+        set_leave_antenna(int(value));
       } else if (strcmp(identifier,"FILTER_LO") == 0) {
-        cout << "got here" << endl;
+        set_filter_lo(double(value));
       } else if (strcmp(identifier,"FILTER_SF") == 0) {
-        cout << "got here" << endl;
+        set_filter_sf(double(value));
       } else {
         cout << "identifier not found" << endl;
         cin.ignore(1);

@@ -78,6 +78,8 @@ private:
   double fft_resample_tstep;
   int fft_max_npts;
   int leave_antenna;
+  double filter_lo;
+  double filter_sf;
 public:
   /*********************************************/
   parameter();
@@ -435,6 +437,16 @@ public:
   int get_leave_antenna();
   void set_leave_antenna();
   void set_leave_antenna(int);
+
+  /*********************************************/
+  double get_filter_lo();
+  void set_filter_lo();
+  void set_filter_lo(double);
+
+  /*********************************************/
+  double get_filter_sf();
+  void set_filter_sf();
+  void set_filter_sf(double);
 
   /*********************************************/
   /*********************************************/
