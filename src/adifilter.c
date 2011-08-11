@@ -155,8 +155,8 @@ int main(int argc, char *argv[])
     //iniitalize other arrays
     Long64_t nF = 0;                 //nF=N/2+1
     Double_t freq = 0, fMax = 0;
-    Double_t LO = 26.9e9;       //Total Local oscillator, in Hz, minimum 24.5, max 26.4?
-    Double_t SF = 6e8;          //Sampling Freq, in Hz, max is 2.5e9, bandwidth is SF/2, goal is 0.2 GHz
+    Double_t LO = parameter.filter_lo;  //Total Local oscillator, in Hz, minimum 24.5, max 26.4? Default at 26.9e9
+    Double_t SF = parameter.filter_sf;  //Sampling Freq, in Hz, max is 2.5e9, bandwidth is SF/2, goal is 0.2 GHz Default at 6e8
     cout << "Reading in power spectrum: LO " << LO * 1.e-9 << " GHz, SF: " << SF * 1.e-6 << " MHz " << endl;
     for (int i = 0; i < nEntries; i++) {
       fft_in->GetEntry(i);

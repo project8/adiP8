@@ -107,7 +107,7 @@ struct particle_data
 
 };
 
-#define max_parameter 67
+#define max_parameter 69
  
 struct t_parameter{
   int inited[max_parameter+1];
@@ -182,6 +182,10 @@ struct t_parameter{
   int fft_on;
   double fft_resample_tstep;
   int fft_max_npts;
+  
+  double filter_lo;
+  double filter_sf;
+  
   char filename[255];
 };
 

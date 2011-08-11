@@ -88,6 +88,8 @@ void init_parameters(void)
   sprintf(parameter.name[++para_count], "FFT_ON");
   sprintf(parameter.name[++para_count], "FFT_RESAMPLE_TSTEP");
   sprintf(parameter.name[++para_count], "FFT_MAX_NPTS");
+  sprintf(parameter.name[++para_count], "FILTER_LO");
+  sprintf(parameter.name[++para_count], "FILTER_SF");
 
   parameter.adip_run_mode = 1;
   parameter.el_mm_unit = 1.;
@@ -158,6 +160,8 @@ void init_parameters(void)
   parameter.fft_on = 1;
   parameter.fft_resample_tstep = 0.000003;
   parameter.fft_max_npts = 20000000;
+  parameter.filter_lo = 26.9e9;
+  parameter.filter_sf = 6e8;
 
   printf("    DONE.\n");
 }
@@ -434,6 +438,14 @@ int store_parameter(const char *identifier, double value)
     status = 1;
   } else if (strcmp(identifier, parameter.name[++number]) == 0) {
     parameter.fft_max_npts = (int) value;
+    parameter.inited[number] = 1;
+    status = 1;
+  } else if (strcmp(identifier, parameter.name[++number]) == 0) {
+    parameter.filter_lo = value;
+    parameter.inited[number] = 1;
+    status = 1;
+  } else if (strcmp(identifier, parameter.name[++number]) == 0) {
+    parameter.filter_sf = value;
     parameter.inited[number] = 1;
     status = 1;
   } else {

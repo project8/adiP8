@@ -280,7 +280,7 @@ void get_bfield_std(double *position, double *bvec)
 
 void get_bfield_homogen(double *bvec)
 {
-  bvec[0] = 1.0;
+  bvec[0] = parameter.b_field_ben2;//1.0;
   bvec[1] = 0.;
   bvec[2] = 0.;
 }
