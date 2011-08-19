@@ -349,11 +349,11 @@ int store_parameter(const char *identifier, double value)
     parameter.inited[number] = 1;
     status = 1;
   } else if (strcmp(identifier, parameter.name[++number]) == 0) {
-    parameter.para_e_loss = (int) value;
+    parameter.para_e_loss = value;
     parameter.inited[number] = 1;
     status = 1;
   } else if (strcmp(identifier, parameter.name[++number]) == 0) {
-    parameter.perp_e_loss = (int) value;
+    parameter.perp_e_loss = value;
     parameter.inited[number] = 1;
     status = 1;
   } else if (strcmp(identifier, parameter.name[++number]) == 0) {

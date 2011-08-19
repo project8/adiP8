@@ -157,8 +157,8 @@ struct t_parameter{
   double trap_start_y;
   double trap_stop_y;
   double trap_step_y;
-  int para_e_loss;
-  int perp_e_loss;
+  double para_e_loss;
+  double perp_e_loss;
   int calc_order;
   double dipole_value;
   int max_mirrors;
